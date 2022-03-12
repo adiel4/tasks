@@ -5,13 +5,13 @@
         #print(x, 'is greater than five')
     #else:
         #print(x, 'must be four or five , then')
-        
+
 #for x in range(10):
     #if x % 2:
         #print(x, 'is odd!')
     #else:
-        #print(x, 'is even!')     
-#year=1900        
+        #print(x, 'is even!')
+#year=1900
 #if not year % 400:
     #is_leap_year = True
 #elif not year % 100:
@@ -20,7 +20,7 @@
     #is_leap_year = True
 #else:
     #is_leap_year = False
-    
+
 ##s_ly = 'is a' if is_leap_year else 'is not a'
 ##print('{:4d} {:s} leap year'.format(year , s_ly))
 
@@ -40,7 +40,7 @@
     #if i%2:
         #continue
     #print(i,'is even!')
-    
+
 #alist=[1,2,3,4,5,6,7]
 #for i,a in enumerate(alist):
     #if a<0:
@@ -48,13 +48,4 @@
         #break
 #else:
     #print('no neg num in list')
-
-a=1013
-b=a-1
-while b!=1:
-    if not a%b:
-        print('the largest factor of ',a,'is',b)
-        break
-    b-=1
-else:
-    print(a,'is prime')
+lS=

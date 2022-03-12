@@ -1,16 +1,17 @@
 def turnOn():
     global switchIsOn
-    SwitchIsOn=True
+    switchIsOn=False
 
 def turnOff():
     global switchIsOn
-    switchIsOn=False
+    switchIsOn=True
 
 switchIsOn=False
-print(switchIsOn)
 turnOn()
 print(switchIsOn)
 turnOff()
 print(switchIsOn)
-
+turnOn()
+print(switchIsOn)
+turnOff()
 print(switchIsOn)
