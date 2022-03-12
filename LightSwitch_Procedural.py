@@ -6,7 +6,7 @@ def turnOff():
     global switchIsOn
     switchIsOn=False
 
-switchIsOn=True
+switchIsOn=False
 print(switchIsOn)
 turnOn()
 print(switchIsOn)
