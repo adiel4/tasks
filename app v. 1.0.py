@@ -556,6 +556,9 @@ class App(QMainWindow):
         self.setWindowTitle('Algorithm')
         self.show()
 
+    def download(self):
+
+
 if __name__.endswith('__main__'):
     app = QApplication(sys.argv)
     ex = App()
