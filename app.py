@@ -12,7 +12,7 @@ from scipy.signal import find_peaks
 from mpl_toolkits.basemap import Basemap
 import sys
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+import time
 class plotTemp(FigureCanvas):
     def __init__(self, parent, dates, lineOne,lineTwo,  dateTicks, dateLabels, clr1, clr2, w1, w2,name1,name2,latOne,lonOne,dateMin,dateMax):
         plt.close('all')
@@ -798,8 +798,7 @@ class App(QMainWindow):
         self.tabLimits.layout.addWidget(self.boxDatesMinPlot3,11,0,1,2)
         self.boxDatesMaxPlot3 = QComboBox(self)
         self.tabLimits.layout.addWidget(self.boxDatesMaxPlot3,11,2,1,2)
-        #self.cmapBox.currentTextChanged.connect(self.colChanged)
-        #self.boxPlot1Line1Color.currentTextChanged.connect(self.exit)
+
         self.filedialog = QFileDialog()
         self.setGeometry(0, 0, 1300, 700)
         self.setWindowTitle('Algorithm')
@@ -845,6 +844,7 @@ class App(QMainWindow):
                         self.boxDatesMaxPlot2.addItem(a+'-'+str(int(k//60))+':00:00')
                         self.boxDatesMaxPlot3.addItem(a+'-'+str(int(k//60))+':00:00')
                         self.tempArray.append(temp[m][:][:][:])
+                        self.date_boxes = []
                 else:
                     continue
         for i in self.level:
@@ -887,7 +887,6 @@ class App(QMainWindow):
         self.boxLonMax2.setCurrentIndex(len(self.longtitude)-1)
         self.boxLevMax1.setCurrentIndex(len(self.level)-1)
         self.boxLevMax2.setCurrentIndex(len(self.level)-1)
-        
     def otrisovka1(self):
        
         self.chart6 = mapLevLat(self, self.level,

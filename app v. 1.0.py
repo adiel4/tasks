@@ -1,6 +1,6 @@
-from myapp import SomeDataset
-
-from PyQt5.QtWidgets import QFileDialog,QCheckBox,QGridLayout,QTabWidget,QApplication,QWidget,QLabel,QPushButton,QMainWindow,QLineEdit,QComboBox,QToolTip
+import myapp as mp
+from PyQt5.QtWidgets import QFileDialog, QCheckBox, QGridLayout, QTabWidget, QApplication, QWidget, QLabel, QPushButton, \
+    QMainWindow, QLineEdit, QComboBox, QToolTip
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QFont
 import numpy as np
@@ -12,10 +12,196 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from scipy.signal import find_peaks
 from mpl_toolkits.basemap import Basemap
 import sys
+import time
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+class plotTemp(FigureCanvas):
+    def __init__(self, parent, dates, lineOne, lineTwo, dateTicks, dateLabels, clr1, clr2, w1, w2, name1, name2, latOne,
+                 lonOne, dateMin, dateMax):
+        plt.close('all')
+        self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        self.l1, = self.ax.plot(dates, lineOne, clr2[0] + '-', linewidth=w2)
+        self.l2, = self.ax.plot(dates, lineTwo, clr1[0] + '-', linewidth=w1)
+        self.ax.legend([name1 + ' hPa', name2 + ' hPa'], loc='best')
+        self.ax.set(xlabel='Дата', ylabel='Температура, К',
+                    title='Температурный профиль(' + str(lonOne) + '$^\circ$N  ' + str(latOne) + '$^\circ$E)')
+        self.ax.set_xticks(dateTicks)
+        self.ax.set_xticklabels(dateLabels, rotation=45)
+        self.ax.grid()
+        self.ax.set_xlim(dates[dateMin], dates[dateMax])
+
+    def col(self, clr):
+        self.ax.get_lines()[0].set_color(clr[0])
+
+    def save4(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+        # fig.tight_layout()
+
+
+class plotdeltaT(FigureCanvas):
+    def __init__(self, parent, dates, dataForPlot, dataForPlot2, dateTicks1, dateLabels1, clr1, clr2, w1, w2, f1, f2,
+                 marc1, marc2, name1, name2, latOne, lonOne, dateMin, dateMax):
+        plt.close('all')
+        self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        indices, h = find_peaks(dataForPlot, distance=50, height=1)
+        indices2, h2 = find_peaks(dataForPlot2, distance=50, height=1)
+        self.l1 = self.ax.plot(dates, dataForPlot, clr1[0] + '-', linewidth=w1)
+        self.ax.plot(dates, dataForPlot2, clr2[0] + '-', linewidth=w2)
+        self.ax.legend([name1 + ' hPa', name2 + ' hPa'], loc='best')
+        for m in range(len(indices)):
+            # self.ax.text(indices[m], 0.1, dates[indices[m]][4:8])
+            self.ax.plot(indices[m], h['peak_heights'][m], marc1[0] + f1[0])
+        for n in range(len(indices2)):
+            # self.ax.text(indices2[n], 0.2, dates[indices2[n]][4:8])
+            self.ax.plot(indices2[n], h2['peak_heights']
+            [n], marc2[0] + f2[0])
+        self.ax.set(xlabel='Дата', ylabel='STA/LTA',
+                    title='STA/LTA профиль(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
+        self.ax.set_xticks(dateTicks1)
+        self.ax.set_xticklabels(dateLabels1, rotation=90)
+        self.ax.grid()
+        self.ax.set_xlim(dates[dateMin], dates[dateMax])
+        # fig.tight_layout()
+
+    def save5(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+    def lineColor(self, color):
+        pass
+
+
+class plotdeltaTc(FigureCanvas):
+    def __init__(self, parent, dates, dataForPlot, dataForPlot2, dateTicks1, dateLabels1, clr1, clr2, w1, w2, f1, f2,
+                 mc1, mc2, latOne, lonOne, dateMin, dateMax):
+        plt.close('all')
+        self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        indices, h = find_peaks(dataForPlot, distance=50, height=1)
+        indices2, h2 = find_peaks(dataForPlot2, distance=50, height=1)
+        self.ax.plot(dates, dataForPlot, clr1[0] + '-', linewidth=w1)
+        self.ax.plot(dates, dataForPlot2, clr2[0] + '-', linewidth=w2)
+        self.ax.legend([r'$\delta$' + 'T', r'$\delta$' + 'Tc'], loc='best')
+        for m in range(len(indices)):
+            # self.ax.text(indices[m], 0.1, dates[indices[m]][4:8])
+            self.ax.plot(indices[m], h['peak_heights'][m], mc1[0] + f1[0])
+        for n in range(len(indices2)):
+            # self.ax.text(indices2[n], 0.2, dates[indices2[n]][4:8])
+            self.ax.plot(indices2[n], h2['peak_heights']
+            [n], mc2[0] + f2[0])
+        self.ax.set(xlabel='Дата', ylabel=r'$\delta$' + 'T',
+                    title='Интегральный профиль(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
+        self.ax.set_xticks(dateTicks1)
+        self.ax.set_xticklabels(dateLabels1, rotation=90)
+        self.ax.set_xlim(dates[dateMin], dates[dateMax])
+        self.ax.grid()
+
+    def save6(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+
+class mapLonLat(FigureCanvas):
+    def __init__(self, parent, long, lat, matrix, date, coltop, name, clat, clon, colMap, colBot, crclCol, crclSize,
+                 latMinInd, latMaxInd, lonMinInd, lonMaxInd):
+        plt.close('all')
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        m = Basemap(projection='merc', llcrnrlat=lat[latMinInd], urcrnrlat=lat[latMaxInd], \
+                    llcrnrlon=long[lonMinInd], urcrnrlon=long[lonMaxInd], lat_ts=20, resolution='i')
+        m.drawcountries()
+        m.drawcoastlines(linewidth=0.5)
+        xs, ys = np.meshgrid(long, lat)
+        x, y = m(xs, ys)
+        m.drawparallels(np.arange(lat[2], lat[-1], 2), labels=[1, 0, 0, 0], linewidth=0.1)
+        merid = m.drawmeridians(np.arange(long[2], long[-1], 3), labels=[0, 0, 0, 1], linewidth=0.1)
+        for k in merid:
+            try:
+                merid[k][1][0].set_rotation(45)
+            except:
+                pass
+
+        highColor = round(coltop / 0.2)
+        lowColor = round(colBot / 0.2)
+        self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
+        ac = m.contourf(x, y, matrix, self.levels, cmap=colMap)
+        self.ax.set(title='Время зондирования:' + date)
+        clb = self.fig.colorbar(ac, orientation='vertical')
+        clb.ax.set_title(name)
+        self.ax.set_xlabel('Долгота', labelpad=50)
+        self.ax.set_ylabel('Широта', labelpad=30)
+        circle = plt.Circle(m(long[clon], lat[clat]), radius=float(crclSize[:-2]) * 100000, color=crclCol[0], fill=True)
+        self.ax.add_artist(circle)
+        self.ax.grid(color='w', linewidth=0.1)
+
+    def save1(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+
+class mapLevLat(FigureCanvas):
+    def __init__(self, parent, level, lat, name):
+        plt.close('all')
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        self.h_km = []
+        for i in level:
+            a = round(44.33 * (1 - (i / 1013.25) ** (1 / 5.255)), 2)
+            self.h_km.append(a)
+        self.ax.set(xlabel=name, ylabel='Высота,км')
+        self.ax.grid(linewidth=0.1)
+
+    def plot(self, lat, matrix, colMap, date, coltop, colbot, levMin, levMax, latMin, latMax):
+        self.ax.set_xlim(lat[latMin], lat[latMax])
+        self.ax.set_ylim(self.h_km[levMin], self.h_km[levMax])
+        self.ax.set(title='Время зондирования:' + date)
+        highColor = round(coltop / 0.2)
+        lowColor = round(colbot / 0.2)
+        levels = [0.2 * x for x in range(lowColor, highColor + 1)]
+        self.ac = self.ax.contourf(lat, self.h_km, matrix, levels, cmap=colMap)
+        self.clb = self.fig.colorbar(self.ac, orientation='vertical')
+        self.clb.ax.set_title(r'$\delta$' + 'T')
+
+    def save2(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+
+class plotLatLevDT(FigureCanvas):
+    def __init__(self, parent, dtLat, dates, lat, colMap):
+        plt.close('all')
+        fig, self.ax = plt.subplots()
+        super().__init__(fig)
+        self.setParent(parent)
+        extent = 0, len(dates), lat[0], lat[-1]
+        ac = self.ax.imshow(dtLat, cmap=colMap, interpolation='bilinear', extent=extent)
+        self.ax.set(title='Временной график:' + r'$\delta$' + 'T')
+        # self.ax.set_xticks([dates[0:-1:5]])
+        self.ax.set_yticks([x for x in lat[0:-1:5]])
+        self.ax.set_yticklabels([x for x in lat[0:-1:5]])
+        self.ax.set_xticks([i for i in range(0, len(dates), 8)])
+        self.ax.set_xticklabels([x[6:8] for x in dates[0:-1:8]], rotation=45)
+        divider = make_axes_locatable(self.ax)
+        cax = divider.append_axes("right", size="5%", pad=0.15)
+        clb = fig.colorbar(ac, orientation='vertical', cax=cax)
+        clb.ax.set_title(r'$\delta$' + 'T')
+        self.ax.set(xlabel='Дата', ylabel='Широта')
+        self.ax.grid()
+        fig.tight_layout()
+
+    def save(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
+
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.dataset = None
         self.initUI()
         self.tempArray = []
         self.dates = []
@@ -31,7 +217,7 @@ class App(QMainWindow):
         self.btnDwnld = QPushButton('Загрузка', self)
         self.btnDwnld.move(40, 230)
         self.btnDwnld.resize(100, 30)
-        # self.btnDwnld.clicked.connect(self.download)
+        self.btnDwnld.clicked.connect(self.download)
         # self.btnDwnld.clicked.connect(self.otrisovka1)
         # self.btnDwnld.clicked.connect(self.otrisovka2)
         self.btnExit = QPushButton('Выход', self)
@@ -41,7 +227,7 @@ class App(QMainWindow):
         self.btnMap = QPushButton('Карта', self)
         self.btnMap.move(150, 250)
         self.btnMap.resize(100, 20)
-        # self.btnMap.clicked.connect(self.dateMap)
+        self.btnMap.clicked.connect(self.date_map)
         # self.btnMap.clicked.connect(self.dateMap2)
         # self.btnMap.clicked.connect(self.dateMap3)
         self.btnGraph = QPushButton('График', self)
@@ -557,6 +743,115 @@ class App(QMainWindow):
         self.show()
 
     def download(self):
+        self.boxLat1.clear()
+        self.boxLat2.clear()
+        self.boxLevel1.clear()
+        self.boxLevel2.clear()
+        self.boxLon1.clear()
+        self.boxLon2.clear()
+        self.boxDates.clear()
+        fl_path = self.filedialog.getExistingDirectory()
+        self.dataset = mp.SomeDataset(fl_path)
+        self.dataset.set_parameters()
+        self.dataset.create_temp_matrix()
+        for date in self.dataset.dates:
+            self.boxDates.addItem(date)
+            self.boxDates2.addItem(date)
+            self.boxDates3.addItem(date)
+            self.boxDatesMinPlot1.addItem(date)
+            self.boxDatesMinPlot2.addItem(date)
+            self.boxDatesMinPlot3.addItem(date)
+            self.boxDatesMaxPlot1.addItem(date)
+            self.boxDatesMaxPlot2.addItem(date)
+            self.boxDatesMaxPlot3.addItem(date)
+        for lat in self.dataset.latitude:
+            self.boxLat1.addItem(str(lat))
+            self.boxLat2.addItem(str(lat))
+            self.boxLat3.addItem(str(lat))
+            self.crcLat.addItem(str(lat))
+            self.boxLatMin1.addItem(str(lat))
+            self.boxLatMin2.addItem(str(lat))
+            self.boxLatMax1.addItem(str(lat))
+            self.boxLatMax2.addItem(str(lat))
+        for lon in self.dataset.longtitude:
+            self.boxLon1.addItem(str(lon))
+            self.boxLon2.addItem(str(lon))
+            self.boxLon3.addItem(str(lon))
+            self.crcLon.addItem(str(lon))
+            self.boxLonMin1.addItem(str(lon))
+            self.boxLonMin2.addItem(str(lon))
+            self.boxLonMax1.addItem(str(lon))
+            self.boxLonMax2.addItem(str(lon))
+        for lev in self.dataset.level:
+            self.boxLevel1.addItem(str(lev))
+            self.boxLevel2.addItem(str(lev))
+            self.boxLevMin1.addItem(str(lev))
+            self.boxLevMax1.addItem(str(lev))
+            self.boxLevMin2.addItem(str(lev))
+            self.boxLevMax2.addItem(str(lev))
+        self.boxDates.adjustSize()
+        self.boxDates2.setCurrentIndex(0)
+        self.boxDates3.setCurrentIndex(len(self.tempArray) - 1)
+        self.boxDatesMaxPlot1.setCurrentIndex(len(self.tempArray) - 1)
+        self.boxDatesMaxPlot2.setCurrentIndex(len(self.tempArray) - 1)
+        self.boxDatesMaxPlot3.setCurrentIndex(len(self.tempArray) - 1)
+        self.boxDatesMinPlot2.setCurrentIndex(int(self.textLTA.text()))
+        self.boxDatesMinPlot3.setCurrentIndex(int(self.textLTA.text()))
+        self.boxLatMax1.setCurrentIndex(len(self.latitude) - 1)
+        self.boxLatMax2.setCurrentIndex(len(self.latitude) - 1)
+        self.boxLonMax1.setCurrentIndex(len(self.longtitude) - 1)
+        self.boxLonMax2.setCurrentIndex(len(self.longtitude) - 1)
+        self.boxLevMax1.setCurrentIndex(len(self.level) - 1)
+        self.boxLevMax2.setCurrentIndex(len(self.level) - 1)
+
+    def otrisovka1(self):
+
+        self.chart6 = mapLevLat(self, self.level,
+                                self.longtitude, 'Долгота')
+
+    def otrisovka2(self):
+
+        self.chart5 = mapLevLat(self, self.level,
+                                self.latitude, 'Широта')
+
+    def date_map(self):
+        lev = int(self.boxLevel1.currentIndex())
+        lev2 = int(self.boxLevel2.currentIndex())
+        date = self.boxDates.currentIndex()
+        lta = int(self.textLTA.text())
+        sta = int(self.textSTA.text())
+        isC = self.isC.isChecked()
+        tempMat = []
+        if lta > date:
+            return None
+        for i in range(0,len(self.dataset.latitude)-1):
+            row = []
+            for j in range(0,len(self.dataset.longtitude)-1):
+                self.dataset.create_ltasta_lev_lat_lon(i, j, lev, lev2, lta, sta, date)
+            tempMat.append(row)
+        if isC == True:
+            name = r'$\delta$' + 'Tc'
+        else:
+            name = r'$\delta$' + 'T'
+        latMin = self.boxLatMin1.currentIndex()
+        latMax = self.boxLatMax1.currentIndex()
+        lonMin = self.boxLonMin1.currentIndex()
+        lonMax = self.boxLonMax1.currentIndex()
+        crclCol = self.boxCrclColor.currentText()
+        crclSize = self.textCrclSize.text().replace(',','.')
+        self.colMap = self.cmapBox.currentText()
+        colTop = float(self.top1.text().replace(',','.'))
+        colBot = float(self.bot1.text().replace(',','.'))
+        clat = self.crcLat.currentIndex()
+        clon = self.crcLon.currentIndex()
+        self.chart4 = mapLonLat(self, self.dataset.longtitude,
+                              self.dataset.latitude, tempMat, self.dataset.dates[date],colTop,name,clat,clon,self.colMap,colBot,crclCol,
+                                crclSize,latMin,latMax,lonMin,lonMax)
+
+        self.tab1.layout.addWidget(self.chart4,0,0)
+        self.toolbar = NavigationToolbar(self.chart4, self)
+        self.toolbar.setOrientation(Qt.Horizontal)
+        self.tab1.layout.addWidget(self.toolbar,1,0)
 
 
 if __name__.endswith('__main__'):
