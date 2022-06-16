@@ -1,4 +1,5 @@
 import myapp as mp
+
 from PyQt5.QtWidgets import QFileDialog, QCheckBox, QGridLayout, QTabWidget, QApplication, QWidget, QLabel, QPushButton, \
     QMainWindow, QLineEdit, QComboBox, QToolTip
 from PyQt5 import QtGui, QtCore
@@ -113,7 +114,7 @@ class mapLonLat(FigureCanvas):
         self.fig, self.ax = plt.subplots(constrained_layout=True)
         super().__init__(self.fig)
         self.setParent(parent)
-        m = Basemap(projection='merc', llcrnrlat=lat[latMinInd], urcrnrlat=lat[latMaxInd], \
+        m = Basemap(projection='merc', llcrnrlat=lat[latMinInd], urcrnrlat=lat[latMaxInd],
                     llcrnrlon=long[lonMinInd], urcrnrlon=long[lonMaxInd], lat_ts=20, resolution='i')
         m.drawcountries()
         m.drawcoastlines(linewidth=0.5)
@@ -201,6 +202,7 @@ class plotLatLevDT(FigureCanvas):
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.fl_path = None
         self.dataset = None
         self.initUI()
         self.tempArray = []
@@ -750,8 +752,8 @@ class App(QMainWindow):
         self.boxLon1.clear()
         self.boxLon2.clear()
         self.boxDates.clear()
-        fl_path = self.filedialog.getExistingDirectory()
-        self.dataset = mp.SomeDataset(fl_path)
+        self.fl_path = self.filedialog.getExistingDirectory()
+        self.dataset = mp.SomeDataset(self.fl_path)
         self.dataset.set_parameters()
         self.dataset.create_temp_matrix()
         for date in self.dataset.dates:
@@ -824,10 +826,10 @@ class App(QMainWindow):
         tempMat = []
         if lta > date:
             return None
-        for i in range(0,len(self.dataset.latitude)-1):
+        for i in range(len(self.dataset.latitude)):
             row = []
-            for j in range(0,len(self.dataset.longtitude)-1):
-                self.dataset.create_ltasta_lev_lat_lon(i, j, lev, lev2, lta, sta, date)
+            for j in range(len(self.dataset.longtitude)):
+                row.append(self.dataset.create_ltasta_с_lev_lat_lon(i, j, lev, lev2, lta, sta, date))
             tempMat.append(row)
         if isC == True:
             name = r'$\delta$' + 'Tc'
@@ -853,6 +855,31 @@ class App(QMainWindow):
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab1.layout.addWidget(self.toolbar,1,0)
 
+    def dateMap2(self):
+        date = self.boxDates.currentIndex()
+        lattit = float(self.boxLon2.currentIndex())
+        lta = int(self.textLTA.text())
+        sta = int(self.textSTA.text())
+
+        if lta > date:
+            return None
+        tempM = []
+        # for i in range(len(self.dataset.level)):
+        #     row = []
+        #     for j in range(len(self.dataset.longtitude)):
+
+        coltop = float(self.top2.text().replace(',', '.'))
+        colBot = float(self.bot2.text().replace(',', '.'))
+
+        levMin = self.boxLevMin1.currentIndex()
+        levMax = self.boxLevMax1.currentIndex()
+        latMin = self.boxLatMin2.currentIndex()
+        latMax = self.boxLatMax2.currentIndex()
+        self.chart5.plot(self.latitude, tempMatrix, self.colMap, date, coltop, colBot, levMin, levMax, latMin, latMax)
+        self.tab2.layout.addWidget(self.chart5, 0, 0)
+        self.toolbar = NavigationToolbar(self.chart5, self)
+        self.toolbar.setOrientation(Qt.Horizontal)
+        self.tab2.layout.addWidget(self.toolbar, 1, 0)
 
 if __name__.endswith('__main__'):
     app = QApplication(sys.argv)
