@@ -1,5 +1,6 @@
 import sys
-
+from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5.QtCore import pyqtSlot, Qt
@@ -124,7 +125,6 @@ class mapLonLat(FigureCanvas):
                 merid[k][1][0].set_rotation(45)
             except:
                 pass
-
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
@@ -134,8 +134,8 @@ class mapLonLat(FigureCanvas):
         clb.ax.set_title(name)
         self.ax.set_xlabel('Долгота', labelpad=50)
         self.ax.set_ylabel('Широта', labelpad=30)
-        circle = plt.Circle(m(long[clon], lat[clat]), radius=float(crclSize[:-2]) * 100000, color=crclCol[0], fill=True)
-        self.ax.add_artist(circle)
+        coord = m(long[clon], lat[clat])
+        self.ax.plot(coord[0], coord[1], color=crclCol[0], marker='*', markersize=float(crclSize[:-2]) * 10)
         self.ax.grid(color='w', linewidth=0.1)
 
     def save1(self, name, dpi, docFormat):
@@ -198,103 +198,83 @@ class mapLevLon(FigureCanvas):
 
 
 class plotLatLevDT(FigureCanvas):
-    def __init__(self, parent, dtLat, dates, lat, colMap):
+    def __init__(self, parent, dtLat, dates, lat, colMap, name):
         plt.close('all')
-        fig, self.ax = plt.subplots(constrained_layout=True)
-        fig.set_figheight(4)
-        fig.set_figwidth(8)
-        super().__init__(fig)
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
         self.setParent(parent)
         ac = self.ax.pcolormesh(dates, lat, dtLat, cmap=colMap)
-        self.ax.set(title='Временной график:' + r'$\delta$' + 'T')
-        # self.ax.set_xticks([dates[0:-1:5]])
-        # self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:8]], rotation=45)
+        self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
-        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:8]], rotation=45)
-        # divider = make_axes_locatable(self.ax)
-        # cax = divider.append_axes("right", size="5%", pad=0.15)
-
-        clb = fig.colorbar(ac, orientation='vertical')
+        self.ax.set_xticks(dates[0:-1:16])
+        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
 
         self.ax.set(xlabel='Дата', ylabel='Широта')
         self.ax.grid(color='w', linewidth=0.1)
 
-    def save(self, name, dpi, docFormat):
+    def save7(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi)
 
 
 class plotLatLevDTc(FigureCanvas):
-    def __init__(self, parent, dtLatc, dates, lat, colMap):
+    def __init__(self, parent, dtLatc, dates, lat, colMap, name):
         plt.close('all')
-        fig, self.ax = plt.subplots(constrained_layout=True)
-        super().__init__(fig)
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
         self.setParent(parent)
-        extent = 0, len(dates), lat[0], lat[-1]
-        ac = self.ax.imshow(dtLatc, cmap=colMap, interpolation='bilinear', extent=extent)
-        self.ax.set(title='Временной график:' + r'$\delta$' + 'Tc')
-        self.ax.set_yticks([x for x in lat[0:-1:5]])
-        self.ax.set_yticklabels([x for x in lat[0:-1:5]])
-        self.ax.set_xticks([i for i in range(0, len(dates), 8)])
-        self.ax.set_xticklabels([x[6:8] for x in dates[0:-1:8]], rotation=45)
-        divider = make_axes_locatable(self.ax)
-        cax = divider.append_axes("right", size="5%", pad=0.15)
-
-        clb = fig.colorbar(ac, orientation='vertical', cax=cax)
+        ac = self.ax.pcolormesh(dates, lat, dtLatc, cmap=colMap)
+        self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
+        self.ax.autoscale(True)
+        self.ax.set_xticks(dates[0:-1:16])
+        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
-
         self.ax.set(xlabel='Дата', ylabel='Широта')
         self.ax.grid(linewidth=0.1)
 
-    def save(self, name, dpi, docFormat):
+    def save8(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi)
 
 
 class plotLonLevDT(FigureCanvas):
-    def __init__(self, parent, dtLon, dates, lon, colMap):
+    def __init__(self, parent, dtLon, dates, lon, colMap, name):
         plt.close('all')
-        fig, self.ax = plt.subplots(constrained_layout=True)
-        super().__init__(fig)
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
         self.setParent(parent)
-        extent = 0, len(dates), lon[0], lon[-1]
-        ac = self.ax.imshow(dtLon, cmap=colMap, interpolation='bilinear', extent=extent)
-        self.ax.set(title='Временной график:' + r'$\delta$' + 'T')
-        self.ax.set_yticks([x for x in lon[0:-1:5]])
-        self.ax.set_yticklabels([x for x in lon[0:-1:5]])
-        self.ax.set_xticks([i for i in range(0, len(dates), 8)])
-        self.ax.set_xticklabels([x[6:8] for x in dates[0:-1:8]], rotation=45)
-        divider = make_axes_locatable(self.ax)
-        cax = divider.append_axes("right", size="5%", pad=0.15)
-
-        clb = fig.colorbar(ac, orientation='vertical', cax=cax)
+        ac = self.ax.pcolormesh(dates, lon, dtLon, cmap=colMap)
+        self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ N')
+        self.ax.autoscale(True)
+        self.ax.set_xticks(dates[0:-1:16])
+        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
-
         self.ax.set(xlabel='Дата', ylabel='Долгота')
         self.ax.grid(linewidth=0.1)
 
+    def save9(self, name, dpi, docFormat):
+        self.fig.savefig(name + docFormat, dpi=dpi)
+
 
 class plotLonLevDTc(FigureCanvas):
-    def __init__(self, parent, dtLonc, dates, lon, colMap):
+    def __init__(self, parent, dtLonc, dates, lon, colMap, name):
         plt.close('all')
-        fig, self.ax = plt.subplots(constrained_layout=True)
-        super().__init__(fig)
+        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        super().__init__(self.fig)
         self.setParent(parent)
-        extent = 0, len(dates), lon[0], lon[-1]
-        ac = self.ax.imshow(dtLonc, cmap=colMap, interpolation='bilinear', extent=extent)
-        self.ax.set(title='Временной график:' + r'$\delta$' + 'Tc')
-        self.ax.set_yticks([x for x in lon[0:-1:5]])
-        self.ax.set_yticklabels([x for x in lon[0:-1:5]])
-        self.ax.set_xticks([i for i in range(0, len(dates), 8)])
-        self.ax.set_xticklabels([x[6:8] for x in dates[0:-1:8]], rotation=45)
-        divider = make_axes_locatable(self.ax)
-        cax = divider.append_axes("right", size="5%", pad=0.15)
-
-        clb = fig.colorbar(ac, orientation='vertical', cax=cax)
+        ac = self.ax.pcolormesh(dates, lon, dtLonc, cmap=colMap)
+        self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ N')
+        self.ax.autoscale(True)
+        self.ax.set_xticks(dates[0:-1:16])
+        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
         self.ax.set(xlabel='Дата', ylabel='Долгота')
         self.ax.grid(linewidth=0.1)
 
-    def save(self, name, dpi, docFormat):
+    def save10(self, name, dpi, docFormat):
         plt.savefig(name + docFormat, dpi=dpi)
 
 
@@ -320,7 +300,7 @@ class App(QMainWindow):
         self.btnExit = QPushButton('Выход', self)
         self.btnExit.move(40, 600)
         self.btnExit.resize(50, 50)
-        # self.btnExit.clicked.connect(self.exit)
+        self.btnExit.clicked.connect(self.exit)
         self.btnMap = QPushButton('Карта', self)
         self.btnMap.move(150, 250)
         self.btnMap.resize(100, 20)
@@ -331,7 +311,6 @@ class App(QMainWindow):
         self.btnGraph.move(40, 270)
         self.btnGraph.resize(60, 30)
         self.btnGraph.clicked.connect(self.timePlot)
-
         self.btnPrevMap = QPushButton('<', self)
         self.btnPrevMap.move(150, 270)
         self.btnPrevMap.resize(30, 30)
@@ -485,7 +464,6 @@ class App(QMainWindow):
         self.btnSaveMap1 = QPushButton('Сохранить', self)
         self.tab6.layout.addWidget(self.btnSaveMap1, 0, 4)
         self.btnSaveMap1.clicked.connect(self.Save1)
-
         self.labSave2 = QLabel('Карта(N/h)', self)
         self.tab6.layout.addWidget(self.labSave2, 1, 0)
         self.textSave2 = QLineEdit(self)
@@ -556,6 +534,58 @@ class App(QMainWindow):
         self.tab6.layout.addWidget(self.btnSaveMap6, 5, 4)
         self.btnSaveMap6.clicked.connect(self.Save6)
 
+        self.labSave7 = QLabel('Срез по широте: dT', self)
+        self.tab6.layout.addWidget(self.labSave7, 6, 0)
+        self.textSave7 = QLineEdit(self)
+        self.textSave7.setText('file7')
+        self.tab6.layout.addWidget(self.textSave7, 6, 1)
+        self.boxFormats7 = QComboBox(self)
+        self.tab6.layout.addWidget(self.boxFormats7, 6, 2)
+        self.textDPI7 = QLineEdit(self)
+        self.textDPI7.setText('300 dpi')
+        self.tab6.layout.addWidget(self.textDPI7, 6, 3)
+        self.btnSaveMap7 = QPushButton('Сохранить', self)
+        self.tab6.layout.addWidget(self.btnSaveMap7, 6, 4)
+        self.btnSaveMap7.clicked.connect(self.Save7)
+        self.labSave8 = QLabel('Срез по широте: dT*c', self)
+        self.tab6.layout.addWidget(self.labSave8, 7, 0)
+        self.textSave8 = QLineEdit(self)
+        self.textSave8.setText('file8')
+        self.tab6.layout.addWidget(self.textSave8, 7, 1)
+        self.boxFormats8 = QComboBox(self)
+        self.tab6.layout.addWidget(self.boxFormats8, 7, 2)
+        self.textDPI8 = QLineEdit(self)
+        self.textDPI8.setText('300 dpi')
+        self.tab6.layout.addWidget(self.textDPI8, 7, 3)
+        self.btnSaveMap8 = QPushButton('Сохранить', self)
+        self.tab6.layout.addWidget(self.btnSaveMap8, 7, 4)
+        self.btnSaveMap8.clicked.connect(self.Save8)
+        self.labSave9 = QLabel('Срез по долготе: dT', self)
+        self.tab6.layout.addWidget(self.labSave9, 8, 0)
+        self.textSave9 = QLineEdit(self)
+        self.textSave9.setText('file9')
+        self.tab6.layout.addWidget(self.textSave9, 8, 1)
+        self.boxFormats9 = QComboBox(self)
+        self.tab6.layout.addWidget(self.boxFormats9, 8, 2)
+        self.textDPI9 = QLineEdit(self)
+        self.textDPI9.setText('300 dpi')
+        self.tab6.layout.addWidget(self.textDPI9, 8, 3)
+        self.btnSaveMap9 = QPushButton('Сохранить', self)
+        self.tab6.layout.addWidget(self.btnSaveMap9, 8, 4)
+        self.btnSaveMap9.clicked.connect(self.Save9)
+        self.labSave10 = QLabel('Срез по долготе: dT*c', self)
+        self.tab6.layout.addWidget(self.labSave10, 9, 0)
+        self.textSave10 = QLineEdit(self)
+        self.textSave10.setText('file10')
+        self.tab6.layout.addWidget(self.textSave10, 9, 1)
+        self.boxFormats10 = QComboBox(self)
+        self.tab6.layout.addWidget(self.boxFormats10, 9, 2)
+        self.textDPI10 = QLineEdit(self)
+        self.textDPI10.setText('300 dpi')
+        self.tab6.layout.addWidget(self.textDPI10, 9, 3)
+        self.btnSaveMap10 = QPushButton('Сохранить', self)
+        self.tab6.layout.addWidget(self.btnSaveMap10, 9, 4)
+        self.btnSaveMap10.clicked.connect(self.Save10)
         imgFormats = ['.tiff', '.png', '.eps', '.jpeg', '.ps', '.raw', '.svg']
 
         for form in imgFormats:
@@ -565,6 +595,10 @@ class App(QMainWindow):
             self.boxFormats4.addItem(form)
             self.boxFormats5.addItem(form)
             self.boxFormats6.addItem(form)
+            self.boxFormats7.addItem(form)
+            self.boxFormats8.addItem(form)
+            self.boxFormats9.addItem(form)
+            self.boxFormats10.addItem(form)
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
         self.tabsOptions = QTabWidget(self)
@@ -759,7 +793,7 @@ class App(QMainWindow):
         self.tabMap.layout.addWidget(self.boxCrclColor, 9, 1)
 
         self.textCrclSize = QLineEdit(self)
-        self.textCrclSize.setText('0.3 см')
+        self.textCrclSize.setText('3 см')
         self.tabMap.layout.addWidget(self.textCrclSize, 9, 3)
 
         colors = ['b-синий', 'g-зеленый', 'r-красный', 'c-голубой', 'm-фиолетовый', 'y-желтый', 'k-черный']
@@ -950,7 +984,7 @@ class App(QMainWindow):
         self.boxLevMax2.setCurrentIndex(len(self.level) - 1)
 
     def exit(self, value):
-        self.chart.col(value)
+        exit()
 
     @pyqtSlot()
     def dateMap(self):
@@ -1247,101 +1281,182 @@ class App(QMainWindow):
             latdT.append(rowdT1)
             latdTc.append(rowdTc1)
 
-        # for j, lon in enumerate(self.longtitude):
-        #     rowdT2 = []
-        #     rowdTc2 = []
-        #     for y in range(index1, index2 + 1, 1):
-        #         array2 = []
-        #         array4 = []
-        #         for temp2 in self.tempArray[:y][-lta:]:
-        #             a1 = temp2[levOne][latitude][j]
-        #             b1 = temp2[levTwo][latitude][j]
-        #             array2.append(a1)
-        #             array4.append(b1)
-        #         ltalon = np.std(array2)
-        #         stalon = np.std(array2[-sta:])
-        #         ltalon2 = np.std(array4)
-        #         stalon2 = np.std(array4[-sta:])
-        #         coef = np.corrcoef(array2[-sta:], array4[-sta:])[0][1]
-        #         sL2 = stalon / ltalon
-        #         sL4 = stalon2 / ltalon2
-        #         if sL2 * sL4 * coef >= 0:
-        #             result = 0
-        #             rowdTc2.append(result)
-        #         else:
-        #             result = sL2 * sL4 * np.abs(coef)
-        #             rowdTc2.append(result)
-        #         rowdT2.append(sL2 * sL4)
-        #     londTc.append(rowdTc2)
-        #     londT.append(rowdT2)
+        for j, lon in enumerate(self.longtitude):
+            rowdT2 = []
+            rowdTc2 = []
+            for y in range(index1, index2 + 1, 1):
+                array2 = []
+                array4 = []
+                for temp2 in self.tempArray[:y][-lta:]:
+                    a1 = temp2[levOne][latitude][j]
+                    b1 = temp2[levTwo][latitude][j]
+                    array2.append(a1)
+                    array4.append(b1)
+                ltalon = np.std(array2)
+                stalon = np.std(array2[-sta:])
+                ltalon2 = np.std(array4)
+                stalon2 = np.std(array4[-sta:])
+                coef = np.corrcoef(array2[-sta:], array4[-sta:])[0][1]
+                sL2 = stalon / ltalon
+                sL4 = stalon2 / ltalon2
+                if sL2 * sL4 * coef >= 0:
+                    result = 0
+                    rowdTc2.append(result)
+                else:
+                    result = sL2 * sL4 * np.abs(coef)
+                    rowdTc2.append(result)
+                rowdT2.append(sL2 * sL4)
+            londTc.append(rowdTc2)
+            londT.append(rowdT2)
 
         colmap = self.cmapBox2.currentText()
-        self.chart4 = plotLatLevDT(self, latdT, self.dates[index1:index2 + 1], self.latitude, colmap)
-        self.toolbar4 = NavigationToolbar(self.chart4, self)
-        self.toolbar4.setOrientation(Qt.Horizontal)
-        self.tab5.layout.addWidget(self.chart4, 1, 0, 2, 8)
-        self.tab5.layout.addWidget(self.toolbar4, 3, 0, 1, 4)
+        self.chart7 = plotLatLevDT(self, latdT, self.dates[index1:index2 + 1], self.latitude, colmap,
+                                   self.longtitude[longtitude])
+        self.toolbar7 = NavigationToolbar(self.chart7, self)
+        self.toolbar7.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chart7, 1, 0, 2, 8)
+        self.tab5.layout.addWidget(self.toolbar7, 3, 0, 1, 4)
 
-        # self.chart6 = plotLatLevDTc(self, latdTc, self.dates[index1:index2 + 1], self.latitude, colmap)
-        # self.toolbar6 = NavigationToolbar(self.chart6, self)
-        # self.toolbar6.setOrientation(Qt.Horizontal)
-        # self.tab5.layout.addWidget(self.chart6, 1, 9, 2, 8)
-        # self.tab5.layout.addWidget(self.toolbar6, 3, 9, 1, 4)
-        #
-        # self.chart5 = plotLonLevDT(self, londT, self.dates[index1:index2 + 1], self.longtitude, colmap)
-        # self.toolbar5 = NavigationToolbar(self.chart5, self)
-        # self.toolbar5.setOrientation(Qt.Horizontal)
-        # self.tab5.layout.addWidget(self.chart5, 4, 0, 2, 8)
-        # self.tab5.layout.addWidget(self.toolbar5, 6, 0, 1, 4)
-        #
-        # self.chart7 = plotLonLevDTc(self, londTc, self.dates[index1:index2 + 1], self.longtitude, colmap)
-        # self.toolbar7 = NavigationToolbar(self.chart7, self)
-        # self.toolbar7.setOrientation(Qt.Horizontal)
-        # self.tab5.layout.addWidget(self.chart7, 4, 9, 2, 8)
-        # self.tab5.layout.addWidget(self.toolbar7, 6, 9, 1, 4)
+        self.chart8 = plotLatLevDTc(self, latdTc, self.dates[index1:index2 + 1], self.latitude, colmap,
+                                    self.longtitude[longtitude])
+        self.toolbar8 = NavigationToolbar(self.chart8, self)
+        self.toolbar8.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chart8, 1, 9, 2, 8)
+        self.tab5.layout.addWidget(self.toolbar8, 3, 9, 1, 4)
+
+        self.chart9 = plotLonLevDT(self, londT, self.dates[index1:index2 + 1], self.longtitude, colmap,
+                                   self.latitude[latitude])
+        self.toolbar9 = NavigationToolbar(self.chart9, self)
+        self.toolbar9.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chart9, 4, 0, 2, 8)
+        self.tab5.layout.addWidget(self.toolbar9, 6, 0, 1, 4)
+
+        self.chart10 = plotLonLevDTc(self, londTc, self.dates[index1:index2 + 1], self.longtitude, colmap,
+                                     self.latitude[latitude])
+        self.toolbar10 = NavigationToolbar(self.chart10, self)
+        self.toolbar10.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chart10, 4, 9, 2, 8)
+        self.tab5.layout.addWidget(self.toolbar10, 6, 9, 1, 4)
 
     def Save1(self):
         form = self.boxFormats1.currentText()
         dpi = int(self.textDPI.text()[:3])
         name = self.textSave1.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart4.save1(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart4.save1(directory + '/' + name, dpi, form)
+        except:
+            return None
 
     def Save2(self):
         form = self.boxFormats2.currentText()
         dpi = int(self.textDPI2.text()[:3])
         name = self.textSave2.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart5.save2(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart5.save2(directory + '/' + name, dpi, form)
+        except:
+            return None
 
     def Save3(self):
         form = self.boxFormats3.currentText()
         dpi = int(self.textDPI3.text()[:3])
         name = self.textSave3.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart6.save3(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart6.save3(directory + '/' + name, dpi, form)
+        except:
+            return None
 
     def Save4(self):
         form = self.boxFormats4.currentText()
         dpi = int(self.textDPI4.text()[:3])
         name = self.textSave4.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart.save4(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart.save4(directory + '/' + name, dpi, form)
+        except:
+            return None
 
     def Save5(self):
         form = self.boxFormats5.currentText()
         dpi = int(self.textDPI5.text()[:3])
         name = self.textSave5.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart2.save5(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart2.save5(directory + '/' + name, dpi, form)
+        except:
+            return None
 
     def Save6(self):
         form = self.boxFormats6.currentText()
         dpi = int(self.textDPI6.text()[:3])
         name = self.textSave6.text()
         directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
-        self.chart3.save6(directory + '/' + name, dpi, form)
+        if directory == '':
+            return None
+        try:
+            self.chart3.save6(directory + '/' + name, dpi, form)
+        except:
+            return None
 
+    def Save7(self):
+        form = self.boxFormats7.currentText()
+        dpi = int(self.textDPI7.text()[:3])
+        name = self.textSave7.text()
+        directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
+        if directory == '':
+            return None
+        try:
+            self.chart7.save7(directory + '/' + name, dpi, form)
+        except:
+            return None
+
+    def Save8(self):
+        form = self.boxFormats8.currentText()
+        dpi = int(self.textDPI8.text()[:3])
+        name = self.textSave8.text()
+        directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
+        if directory == '':
+            return None
+        try:
+            self.chart8.save8(directory + '/' + name, dpi, form)
+        except:
+            return None
+
+    def Save9(self):
+        form = self.boxFormats9.currentText()
+        dpi = int(self.textDPI9.text()[:3])
+        name = self.textSave9.text()
+        directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
+        if directory == '':
+            return None
+        try:
+            self.chart9.save9(directory + '/' + name, dpi, form)
+        except:
+            return None
+
+    def Save10(self):
+        form = self.boxFormats10.currentText()
+        dpi = int(self.textDPI10.text()[:3])
+        name = self.textSave10.text()
+        directory = str(QFileDialog.getExistingDirectory(self, 'Выберите папку для сохранения'))
+        if directory == '':
+            return None
+        try:
+            self.chart10.save10(directory + '/' + name, dpi, form)
+        except:
+            return None
 
 if __name__.endswith('__main__'):
     app = QApplication(sys.argv)
