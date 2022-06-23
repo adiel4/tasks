@@ -1215,10 +1215,17 @@ class App(QMainWindow):
         marCol2 = self.boxcol2.currentText()
         marCol3 = self.boxcol3.currentText()
         marCol4 = self.boxcol4.currentText()
-        dateMin2 = self.boxDatesMinPlot2.currentIndex() - int(self.textLTA.text())
-        dateMax2 = self.boxDatesMaxPlot2.currentIndex() - int(self.textLTA.text())
-        dateMin3 = self.boxDatesMinPlot3.currentIndex() - int(self.textLTA.text())
-        dateMax3 = self.boxDatesMaxPlot3.currentIndex() - int(self.textLTA.text())
+        start = int(self.textLTA.text())
+        if self.boxDatesMinPlot2.currentIndex() > lta:
+            dateMin2 = self.boxDatesMinPlot2.currentIndex() - lta
+        else:
+            dateMin2 = 0
+        dateMax2 = self.boxDatesMaxPlot2.currentIndex() - start
+        if self.boxDatesMinPlot3.currentIndex() > lta:
+            dateMin2 = self.boxDatesMinPlot3.currentIndex() - lta
+        else:
+            dateMin3 = 0
+        dateMax3 = self.boxDatesMaxPlot3.currentIndex() - start
         self.chart2 = plotdeltaT(
             self, self.dates[lta:], arrayLev1, arrayLev2, dateTicks, dateLabels, clr1, clr2, width1, width2, form1,
             form2, marCol1, marCol2, name1, name2, latOne, lonOne, dateMin2, dateMax2)
@@ -1457,6 +1464,7 @@ class App(QMainWindow):
             self.chart10.save10(directory + '/' + name, dpi, form)
         except:
             return None
+
 
 if __name__.endswith('__main__'):
     app = QApplication(sys.argv)
