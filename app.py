@@ -118,21 +118,21 @@ class mapLonLat(FigureCanvas):
         m.drawcoastlines(linewidth=0.5)
         xs, ys = np.meshgrid(long, lat)
         x, y = m(xs, ys)
-        m.drawparallels(np.arange(lat[0], lat[-1], 2), labels=[1, 0, 0, 0], linewidth=0.1)
-        merid = m.drawmeridians(np.arange(long[0], long[-1], 2), labels=[0, 0, 0, 1], linewidth=0.1)
-        for k in merid:
-            try:
-                merid[k][1][0].set_rotation(45)
-            except:
-                pass
+        m.drawparallels(np.arange(lat[0], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1)
+        merid = m.drawmeridians(np.arange(long[0], long[-1], 4), labels=[0, 0, 0, 1], linewidth=0.1)
+        # for k in merid:
+        #     try:
+        #         merid[k][1][0].set_rotation(45)
+        #     except:
+        #         pass
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = m.contourf(x, y, matrix, self.levels, cmap=colMap)
-        self.ax.set(title='Время зондирования:' + date)
+        self.ax.set_title('Время зондирования:' + date,fontsize=10)
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(name)
-        self.ax.set_xlabel('Долгота', labelpad=50)
+        self.ax.set_xlabel('Долгота', labelpad=20)
         self.ax.set_ylabel('Широта', labelpad=30)
         coord = m(long[clon], lat[clat])
         self.ax.plot(coord[0], coord[1], color=crclCol[0], marker='*', markersize=float(crclSize[:-2]) * 10)
@@ -588,17 +588,11 @@ class App(QMainWindow):
         self.btnSaveMap10.clicked.connect(self.Save10)
         imgFormats = ['.tiff', '.png', '.eps', '.jpeg', '.ps', '.raw', '.svg']
 
+        box_formats = [self.boxFormats1, self.boxFormats2, self.boxFormats3, self.boxFormats4, self.boxFormats5,
+                       self.boxFormats6, self.boxFormats7, self.boxFormats8, self.boxFormats9, self.boxFormats10]
         for form in imgFormats:
-            self.boxFormats1.addItem(form)
-            self.boxFormats2.addItem(form)
-            self.boxFormats3.addItem(form)
-            self.boxFormats4.addItem(form)
-            self.boxFormats5.addItem(form)
-            self.boxFormats6.addItem(form)
-            self.boxFormats7.addItem(form)
-            self.boxFormats8.addItem(form)
-            self.boxFormats9.addItem(form)
-            self.boxFormats10.addItem(form)
+            for box in box_formats:
+                box.addItem(form)
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
         self.tabsOptions = QTabWidget(self)
@@ -751,7 +745,7 @@ class App(QMainWindow):
         self.labGr4 = QLabel('Карта(N/E)', self)
         self.tabMap.layout.addWidget(self.labGr4, 1, 2, 1, 3)
         self.bot1 = QLineEdit(self)
-        self.bot1.setText('-1.5')
+        self.bot1.setText('0')
         self.tabMap.layout.addWidget(self.bot1, 2, 2, 1, 1)
         self.labGr2 = QLabel('Верх. и нижн. граница', self)
         self.tabMap.layout.addWidget(self.labGr2, 3, 0, 1, 2)
@@ -797,18 +791,12 @@ class App(QMainWindow):
         self.tabMap.layout.addWidget(self.textCrclSize, 9, 3)
 
         colors = ['b-синий', 'g-зеленый', 'r-красный', 'c-голубой', 'm-фиолетовый', 'y-желтый', 'k-черный']
+        box_colors = [self.boxPlot1Line1Color, self.boxPlot1Line2Color, self.boxcol, self.boxcol2,
+                      self.boxPlot2Line1Color, self.boxPlot2Line2Color, self.boxcol3, self.boxcol4,
+                      self.boxPlot3Line1Color, self.boxPlot3Line2Color, self.boxCrclColor]
         for color in colors:
-            self.boxPlot1Line1Color.addItem(color)
-            self.boxPlot1Line2Color.addItem(color)
-            self.boxPlot2Line1Color.addItem(color)
-            self.boxPlot2Line2Color.addItem(color)
-            self.boxPlot3Line1Color.addItem(color)
-            self.boxPlot3Line2Color.addItem(color)
-            self.boxcol.addItem(color)
-            self.boxcol2.addItem(color)
-            self.boxcol3.addItem(color)
-            self.boxcol4.addItem(color)
-            self.boxCrclColor.addItem(color)
+            for box in box_colors:
+                box.addItem(color)
 
         self.boxPlot1Line1Color.setCurrentIndex(0)
         self.boxPlot1Line2Color.setCurrentIndex(1)
@@ -879,42 +867,15 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def download(self):
-        self.boxLat1.clear()
-        self.boxLat2.clear()
-        self.boxLevel1.clear()
-        self.boxLevel2.clear()
-        self.boxLon1.clear()
-        self.boxLon2.clear()
-        self.boxDates.clear()
-        self.boxDates2.clear()
-        self.boxDates3.clear()
-        self.crcLat.clear()
-        self.crcLon.clear()
-        self.boxLatMax2.clear()
-        self.boxLatMin2.clear()
-        self.boxLatMax1.clear()
-        self.boxLatMin1.clear()
-        self.boxLevMax1.clear()
-        self.boxLevMax2.clear()
-        self.boxLevMin2.clear()
-        self.boxLevMin1.clear()
-        self.boxLonMax2.clear()
-        self.boxLonMax1.clear()
-        self.boxLonMin2.clear()
-        self.boxLonMin1.clear()
-        self.boxLat3.clear()
-        self.boxLon3.clear()
-        self.boxDatesMaxPlot2.clear()
-        self.boxDatesMaxPlot1.clear()
-        self.boxDatesMaxPlot3.clear()
-        self.boxDatesMinPlot3.clear()
-        self.boxDatesMinPlot2.clear()
-        self.boxDatesMinPlot1.clear()
-        self.level = []
-        self.latitude = []
-        self.longtitude = []
-        self.dates = []
-        self.tempArray = []
+        boxes = [self.boxLat1, self.boxLat2, self.crcLat, self.boxLat3, self.boxLatMin1, self.boxLatMin2,
+                 self.boxLatMax1, self.boxLatMax2, self.boxLevel1, self.boxLevel2, self.boxLevMin1,
+                 self.boxLevMin2, self.boxLevMax1, self.boxLevMax2, self.boxLon1, self.boxLon2, self.boxLon3,
+                 self.crcLon, self.boxLonMax2, self.boxLonMax1, self.boxLonMin1, self.boxLonMin2,
+                 self.boxDates, self.boxDates2, self.boxDates3, self.boxDatesMaxPlot2, self.boxDatesMaxPlot1,
+                 self.boxDatesMaxPlot3, self.boxDatesMinPlot3, self.boxDatesMinPlot2, self.boxDatesMinPlot1]
+        for box in boxes:
+            box.clear()
+        self.level, self.latitude, self.longtitude, self.dates, self.tempArray = [], [], [], [], []
         import netCDF4 as nc
         a = self.filedialog.getOpenFileNames()[:-1]
         for i in a:
@@ -929,59 +890,30 @@ class App(QMainWindow):
                         dates = list(ds['time'][:])
                     for m, k in enumerate(dates):
                         a = j.split('.')[2]
+                        for boxdates in boxes[-9:]:
+                            boxdates.addItem(a + '-' + str(int(k // 60)) + ':00:00')
                         self.dates.append(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDates.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDates2.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDates3.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMinPlot1.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMaxPlot1.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMinPlot2.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMinPlot3.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMaxPlot2.addItem(a + '-' + str(int(k // 60)) + ':00:00')
-                        self.boxDatesMaxPlot3.addItem(a + '-' + str(int(k // 60)) + ':00:00')
                         self.tempArray.append(temp[m][:][:][:])
                 else:
                     continue
         for i in self.level:
-            self.boxLevel1.addItem(str(i))
-            self.boxLevel2.addItem(str(i))
-            self.boxLevMin1.addItem(str(i))
-            self.boxLevMax1.addItem(str(i))
-            self.boxLevMin2.addItem(str(i))
-            self.boxLevMax2.addItem(str(i))
+            for boxlev in boxes[8:14]:
+                boxlev.addItem(str(i))
         for j in self.latitude:
-            self.boxLat1.addItem(str(j))
-            self.boxLat2.addItem(str(j))
-            self.boxLat3.addItem(str(j))
-            self.crcLat.addItem(str(j))
-            self.boxLatMin1.addItem(str(j))
-            self.boxLatMin2.addItem(str(j))
-            self.boxLatMax1.addItem(str(j))
-            self.boxLatMax2.addItem(str(j))
+            for boxlat in boxes[0:8]:
+                boxlat.addItem(str(j))
         for k in self.longtitude:
-            self.boxLon1.addItem(str(k))
-            self.boxLon2.addItem(str(k))
-            self.boxLon3.addItem(str(k))
-            self.crcLon.addItem(str(k))
-            self.boxLonMin1.addItem(str(k))
-            self.boxLonMin2.addItem(str(k))
-            self.boxLonMax1.addItem(str(k))
-            self.boxLonMax2.addItem(str(k))
+            for boxlon in boxes[14:22]:
+                boxlon.addItem(str(k))
         self.boxDates.adjustSize()
         self.boxDates2.setCurrentIndex(0)
-        self.boxDates3.setCurrentIndex(len(self.tempArray) - 1)
-        self.boxDatesMaxPlot1.setCurrentIndex(len(self.tempArray) - 1)
-        self.boxDatesMaxPlot2.setCurrentIndex(len(self.tempArray) - 1)
-        self.boxDatesMaxPlot3.setCurrentIndex(len(self.tempArray) - 1)
+        boxes2 = [self.boxLatMax1, self.boxLatMax2, self.boxLonMax1, self.boxLonMax2, self.boxLevMax1,
+                  self.boxLevMax2, self.boxDates3, self.boxDatesMaxPlot1, self.boxDatesMaxPlot2,
+                  self.boxDatesMaxPlot3]
         self.boxDatesMinPlot2.setCurrentIndex(int(self.textLTA.text()))
         self.boxDatesMinPlot3.setCurrentIndex(int(self.textLTA.text()))
-
-        self.boxLatMax1.setCurrentIndex(len(self.latitude) - 1)
-        self.boxLatMax2.setCurrentIndex(len(self.latitude) - 1)
-        self.boxLonMax1.setCurrentIndex(len(self.longtitude) - 1)
-        self.boxLonMax2.setCurrentIndex(len(self.longtitude) - 1)
-        self.boxLevMax1.setCurrentIndex(len(self.level) - 1)
-        self.boxLevMax2.setCurrentIndex(len(self.level) - 1)
+        for box in boxes2:
+            box.setCurrentIndex(box.count() - 1)
 
     def exit(self, value):
         exit()
@@ -1039,10 +971,10 @@ class App(QMainWindow):
                                 self.latitude, tempMatrix, date, colTop, name, clat, clon, self.colMap, colBot, crclCol,
                                 crclSize, latMin, latMax, lonMin, lonMax)
 
-        self.tab1.layout.addWidget(self.chart4, 0, 0)
+        self.tab1.layout.addWidget(self.chart4, 0, 0,1,1)
         self.toolbar = NavigationToolbar(self.chart4, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab1.layout.addWidget(self.toolbar, 1, 0)
+        self.tab1.layout.addWidget(self.toolbar, 1, 0,1,1)
         pass
 
     @pyqtSlot()
@@ -1075,10 +1007,10 @@ class App(QMainWindow):
         self.chart5 = mapLevLat(self, self.level,
                                 self.latitude, tempMatrix, date, coltop, self.colMap, colBot, levMin, levMax, latMin,
                                 latMax)
-        self.tab2.layout.addWidget(self.chart5, 0, 0)
+        self.tab1.layout.addWidget(self.chart5, 2, 0,1,1)
         self.toolbar = NavigationToolbar(self.chart5, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab2.layout.addWidget(self.toolbar, 1, 0)
+        self.tab1.layout.addWidget(self.toolbar, 3, 0,1,1)
 
     @pyqtSlot()
     def dateMap3(self):
@@ -1110,10 +1042,10 @@ class App(QMainWindow):
         self.chart6 = mapLevLon(self, self.level,
                                 self.longtitude, tempMatrix, date, coltop, self.colMap, colbot, levMin, levMax, lonMin,
                                 lonMax)
-        self.tab3.layout.addWidget(self.chart6, 0, 0)
+        self.tab1.layout.addWidget(self.chart6, 0, 1)
         self.toolbar = NavigationToolbar(self.chart6, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab3.layout.addWidget(self.toolbar, 1, 0)
+        self.tab1.layout.addWidget(self.toolbar, 1, 1)
 
     @pyqtSlot()
     def NextMap(self):
