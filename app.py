@@ -12,6 +12,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.basemap import Basemap
 from scipy.signal import find_peaks
+import matplotlib
 
 
 class plotTemp(FigureCanvas):
@@ -25,7 +26,7 @@ class plotTemp(FigureCanvas):
         self.l2, = self.ax.plot(dates, lineTwo, clr1[0] + '-', linewidth=w1)
         self.ax.legend([name1 + ' hPa', name2 + ' hPa'], loc='best')
         self.ax.set(xlabel='Дата', ylabel='Температура, К',
-                    title='Температурный профиль(' + str(lonOne) + '$^\circ$N  ' + str(latOne) + '$^\circ$E)')
+                    title='Температура(' + str(lonOne) + '$^\circ$N  ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks)
         self.ax.set_xticklabels(dateLabels, rotation=45)
         self.ax.grid()
@@ -60,7 +61,7 @@ class plotdeltaT(FigureCanvas):
             self.ax.plot(indices2[n], h2['peak_heights']
             [n], marc2[0] + f2[0])
         self.ax.set(xlabel='Дата', ylabel='STA/LTA',
-                    title='STA/LTA профиль(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
+                    title='STA/LTA(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks1)
         self.ax.set_xticklabels(dateLabels1, rotation=90)
         self.ax.grid()
@@ -95,7 +96,7 @@ class plotdeltaTc(FigureCanvas):
             self.ax.plot(indices2[n], h2['peak_heights']
             [n], mc2[0] + f2[0])
         self.ax.set(xlabel='Дата', ylabel=r'$\delta$' + 'T',
-                    title='Интегральный профиль(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
+                    title='Интегральный параметр(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks1)
         self.ax.set_xticklabels(dateLabels1, rotation=90)
         self.ax.set_xlim(dates[dateMin], dates[dateMax])
@@ -109,7 +110,8 @@ class mapLonLat(FigureCanvas):
     def __init__(self, parent, long, lat, matrix, date, coltop, name, clat, clon, colMap, colBot, crclCol, crclSize,
                  latMinInd, latMaxInd, lonMinInd, lonMaxInd):
         plt.close('all')
-        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        self.fig, self.ax = plt.subplots(constrained_layout=False)
+        plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
         self.setParent(parent)
         m = Basemap(projection='merc', llcrnrlat=lat[latMinInd], urcrnrlat=lat[latMaxInd],
@@ -118,20 +120,20 @@ class mapLonLat(FigureCanvas):
         m.drawcoastlines(linewidth=0.5)
         xs, ys = np.meshgrid(long, lat)
         x, y = m(xs, ys)
-        m.drawparallels(np.arange(lat[0], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1)
-        merid = m.drawmeridians(np.arange(long[0], long[-1], 4), labels=[0, 0, 0, 1], linewidth=0.1)
-        # for k in merid:
-        #     try:
-        #         merid[k][1][0].set_rotation(45)
-        #     except:
-        #         pass
+        m.drawparallels(np.arange(lat[4], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1)
+        merid = m.drawmeridians(np.arange(long[0], long[-1], 5), labels=[0, 0, 0, 1], linewidth=0.1)
+        for k in merid:
+            try:
+                merid[k][1][0].set_rotation(30)
+            except:
+                pass
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = m.contourf(x, y, matrix, self.levels, cmap=colMap)
-        self.ax.set_title('Время зондирования:' + date,fontsize=10)
+        self.ax.set_title(date, )
         clb = self.fig.colorbar(ac, orientation='vertical')
-        clb.ax.set_title(name)
+        clb.ax.set_title(name, fontsize=10)
         self.ax.set_xlabel('Долгота', labelpad=20)
         self.ax.set_ylabel('Широта', labelpad=30)
         coord = m(long[clon], lat[clat])
@@ -145,24 +147,23 @@ class mapLonLat(FigureCanvas):
 class mapLevLat(FigureCanvas):
     def __init__(self, parent, level, lat, matrix, date, coltop, colMap, colbot, levMin, levMax, latMin, latMax):
         plt.close('all')
-        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        self.fig, self.ax = plt.subplots(constrained_layout=False)
+        plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
         self.setParent(parent)
         h_km = []
         for i in level:
             a = round(44.33 * (1 - (i / 1013.25) ** (1 / 5.255)), 2)
             h_km.append(a)
-
         highColor = round(coltop / 0.2)
         lowColor = round(colbot / 0.2)
         levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = self.ax.contourf(lat, h_km, matrix, levels, cmap=colMap)
-        self.ax.set(title='Время зондирования:' + date)
-        # plt.gca().invert_yaxis()
+        self.ax.set(title=date)
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(lat[latMin], lat[latMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
-        clb.ax.set_title(r'$\delta$' + 'T')
+        clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
         self.ax.set(xlabel='Широта', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
@@ -173,23 +174,23 @@ class mapLevLat(FigureCanvas):
 class mapLevLon(FigureCanvas):
     def __init__(self, parent, lev, long, matrix, date, coltop, colMap, colbot, levMin, levMax, lonMin, lonMax):
         plt.close('all')
-        self.fig, self.ax = plt.subplots(constrained_layout=True)
+        self.fig, self.ax = plt.subplots(constrained_layout=False)
+        plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
         self.setParent(parent)
         h_km = []
         for i in lev:
             a = round(44.33 * (1 - (i / 1013.25) ** (1 / 5.255)), 2)
             h_km.append(a)
-
         highColor = round(coltop / 0.2)
         lowColor = round(colbot / 0.2)
         levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = self.ax.contourf(long, h_km, matrix, levels, cmap=colMap)
-        self.ax.set(title='Время зондирования:' + date)
+        self.ax.set(title=date)
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(long[lonMin], long[lonMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
-        clb.ax.set_title(r'$\delta$' + 'T')
+        clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
         self.ax.set(xlabel='Долгота', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
@@ -198,12 +199,16 @@ class mapLevLon(FigureCanvas):
 
 
 class plotLatLevDT(FigureCanvas):
-    def __init__(self, parent, dtLat, dates, lat, colMap, name):
+    def __init__(self, parent, dtLat, dates, lat, colMap, name, epic_date, epic_lat):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=True)
         super().__init__(self.fig)
+        x1, y1 = [-0.5, len(dates)-0.5], [lat[epic_lat]-0.25, lat[epic_lat]-0.25]
+        x2, y2 = [epic_date-0.5, epic_date-0.5], [lat[0]-0.25, lat[-1]]
         self.setParent(parent)
         ac = self.ax.pcolormesh(dates, lat, dtLat, cmap=colMap)
+        plt.plot(x1, y1, 'r')
+        plt.plot(x2, y2, 'r')
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -219,12 +224,16 @@ class plotLatLevDT(FigureCanvas):
 
 
 class plotLatLevDTc(FigureCanvas):
-    def __init__(self, parent, dtLatc, dates, lat, colMap, name):
+    def __init__(self, parent, dtLatc, dates, lat, colMap, name, epic_date, epic_lat):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=True)
         super().__init__(self.fig)
         self.setParent(parent)
         ac = self.ax.pcolormesh(dates, lat, dtLatc, cmap=colMap)
+        x1, y1 = [-0.5, len(dates)-0.5], [lat[epic_lat]-0.25, lat[epic_lat]-0.25]
+        x2, y2 = [epic_date-0.5, epic_date-0.5], [lat[0]-0.25, lat[-1]]
+        plt.plot(x1, y1, 'r')
+        plt.plot(x2, y2, 'r')
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -239,12 +248,16 @@ class plotLatLevDTc(FigureCanvas):
 
 
 class plotLonLevDT(FigureCanvas):
-    def __init__(self, parent, dtLon, dates, lon, colMap, name):
+    def __init__(self, parent, dtLon, dates, lon, colMap, name, epic_date,epic_lon):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=True)
         super().__init__(self.fig)
         self.setParent(parent)
         ac = self.ax.pcolormesh(dates, lon, dtLon, cmap=colMap)
+        x1, y1 = [-0.5, len(dates)-0.5], [lon[epic_lon]-0.6875, lon[epic_lon]-0.6875]
+        x2, y2 = [epic_date-0.5, epic_date-0.5], [lon[0], lon[-1]+0.3125]
+        plt.plot(x1, y1, 'r')
+        plt.plot(x2, y2, 'r')
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -259,12 +272,16 @@ class plotLonLevDT(FigureCanvas):
 
 
 class plotLonLevDTc(FigureCanvas):
-    def __init__(self, parent, dtLonc, dates, lon, colMap, name):
+    def __init__(self, parent, dtLonc, dates, lon, colMap, name, epic_date,epic_lon):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=True)
         super().__init__(self.fig)
         self.setParent(parent)
         ac = self.ax.pcolormesh(dates, lon, dtLonc, cmap=colMap)
+        x1, y1 = [-0.5, len(dates)-0.5], [lon[epic_lon]-0.6875, lon[epic_lon]-0.6875]
+        x2, y2 = [epic_date-0.5, epic_date-0.5], [lon[0], lon[-1]+0.3125]
+        plt.plot(x1, y1, 'r')
+        plt.plot(x2, y2, 'r')
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -400,18 +417,12 @@ class App(QMainWindow):
         self.tab6 = QWidget(self)
 
         self.tabs.addTab(self.tab1, "Карта(N/E)")
-        self.tabs.addTab(self.tab2, "Карта(N/h)")
-        self.tabs.addTab(self.tab3, "Карта(E/h)")
         self.tabs.addTab(self.tab4, "Профиль;STA/LTA")
         self.tabs.addTab(self.tab5, "Cрез(N/E)")
         self.tabs.addTab(self.tab6, 'Сохранение Графиков')
 
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
-        self.tab2.layout = QGridLayout(self.tab2)
-        self.tab2.setLayout(self.tab2.layout)
-        self.tab3.layout = QGridLayout(self.tab3)
-        self.tab3.setLayout(self.tab3.layout)
         self.tab4.layout = QGridLayout(self.tab4)
         self.tab4.setLayout(self.tab4.layout)
         self.tab5.layout = QGridLayout(self.tab5)
@@ -586,6 +597,7 @@ class App(QMainWindow):
         self.btnSaveMap10 = QPushButton('Сохранить', self)
         self.tab6.layout.addWidget(self.btnSaveMap10, 9, 4)
         self.btnSaveMap10.clicked.connect(self.Save10)
+
         imgFormats = ['.tiff', '.png', '.eps', '.jpeg', '.ps', '.raw', '.svg']
 
         box_formats = [self.boxFormats1, self.boxFormats2, self.boxFormats3, self.boxFormats4, self.boxFormats5,
@@ -745,7 +757,7 @@ class App(QMainWindow):
         self.labGr4 = QLabel('Карта(N/E)', self)
         self.tabMap.layout.addWidget(self.labGr4, 1, 2, 1, 3)
         self.bot1 = QLineEdit(self)
-        self.bot1.setText('0')
+        self.bot1.setText('-0.2')
         self.tabMap.layout.addWidget(self.bot1, 2, 2, 1, 1)
         self.labGr2 = QLabel('Верх. и нижн. граница', self)
         self.tabMap.layout.addWidget(self.labGr2, 3, 0, 1, 2)
@@ -770,25 +782,27 @@ class App(QMainWindow):
         self.crclLabel = QLabel('Эпицентр', self)
         self.crclLabelLon = QLabel('Долгота', self)
         self.crclLabelLat = QLabel('Широта', self)
-        self.tabMap.layout.addWidget(self.crclLabelLat, 8, 0)
-        self.tabMap.layout.addWidget(self.crclLabelLon, 8, 2)
-        self.tabMap.layout.addWidget(self.crclLabel, 7, 0)
+        self.tabMap.layout.addWidget(self.crclLabelLat, 9, 0)
+        self.tabMap.layout.addWidget(self.crclLabelLon, 9, 2)
+        self.tabMap.layout.addWidget(self.crclLabel, 8, 0)
         self.crcLat = QComboBox(self)
-        self.tabMap.layout.addWidget(self.crcLat, 8, 1)
+        self.tabMap.layout.addWidget(self.crcLat, 9, 1)
         self.crcLon = QComboBox(self)
-        self.tabMap.layout.addWidget(self.crcLon, 8, 3, 1, 2)
+        self.tabMap.layout.addWidget(self.crcLon, 9, 3, 1, 2)
 
+        self.boxcrcDate = QComboBox(self)
+        self.tabMap.layout.addWidget(self.boxcrcDate, 8, 1, 1, 2)
         self.crclLabelColor = QLabel('Цвет', self)
-        self.tabMap.layout.addWidget(self.crclLabelColor, 9, 0)
+        self.tabMap.layout.addWidget(self.crclLabelColor, 10, 0)
         self.crclLabelSize = QLabel('Размер', self)
-        self.tabMap.layout.addWidget(self.crclLabelSize, 9, 2)
+        self.tabMap.layout.addWidget(self.crclLabelSize, 10, 2)
 
         self.boxCrclColor = QComboBox(self)
-        self.tabMap.layout.addWidget(self.boxCrclColor, 9, 1)
+        self.tabMap.layout.addWidget(self.boxCrclColor, 10, 1)
 
         self.textCrclSize = QLineEdit(self)
         self.textCrclSize.setText('3 см')
-        self.tabMap.layout.addWidget(self.textCrclSize, 9, 3)
+        self.tabMap.layout.addWidget(self.textCrclSize, 10, 3)
 
         colors = ['b-синий', 'g-зеленый', 'r-красный', 'c-голубой', 'm-фиолетовый', 'y-желтый', 'k-черный']
         box_colors = [self.boxPlot1Line1Color, self.boxPlot1Line2Color, self.boxcol, self.boxcol2,
@@ -804,6 +818,7 @@ class App(QMainWindow):
         self.boxPlot3Line1Color.setCurrentIndex(3)
         self.boxPlot3Line2Color.setCurrentIndex(5)
         self.boxPlot2Line1Color.setCurrentIndex(4)
+        self.boxCrclColor.setCurrentIndex(2)
         self.boxDates.view().setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         ###############Вкладка: Свойства границ ######################
@@ -872,7 +887,8 @@ class App(QMainWindow):
                  self.boxLevMin2, self.boxLevMax1, self.boxLevMax2, self.boxLon1, self.boxLon2, self.boxLon3,
                  self.crcLon, self.boxLonMax2, self.boxLonMax1, self.boxLonMin1, self.boxLonMin2,
                  self.boxDates, self.boxDates2, self.boxDates3, self.boxDatesMaxPlot2, self.boxDatesMaxPlot1,
-                 self.boxDatesMaxPlot3, self.boxDatesMinPlot3, self.boxDatesMinPlot2, self.boxDatesMinPlot1]
+                 self.boxDatesMaxPlot3, self.boxDatesMinPlot3, self.boxDatesMinPlot2, self.boxDatesMinPlot1,
+                 self.boxcrcDate]
         for box in boxes:
             box.clear()
         self.level, self.latitude, self.longtitude, self.dates, self.tempArray = [], [], [], [], []
@@ -890,7 +906,7 @@ class App(QMainWindow):
                         dates = list(ds['time'][:])
                     for m, k in enumerate(dates):
                         a = j.split('.')[2]
-                        for boxdates in boxes[-9:]:
+                        for boxdates in boxes[-10:]:
                             boxdates.addItem(a + '-' + str(int(k // 60)) + ':00:00')
                         self.dates.append(a + '-' + str(int(k // 60)) + ':00:00')
                         self.tempArray.append(temp[m][:][:][:])
@@ -971,10 +987,10 @@ class App(QMainWindow):
                                 self.latitude, tempMatrix, date, colTop, name, clat, clon, self.colMap, colBot, crclCol,
                                 crclSize, latMin, latMax, lonMin, lonMax)
 
-        self.tab1.layout.addWidget(self.chart4, 0, 0,1,1)
+        self.tab1.layout.addWidget(self.chart4, 0, 0, 1, 1)
         self.toolbar = NavigationToolbar(self.chart4, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab1.layout.addWidget(self.toolbar, 1, 0,1,1)
+        self.tab1.layout.addWidget(self.toolbar, 1, 0, 1, 1)
         pass
 
     @pyqtSlot()
@@ -1007,10 +1023,10 @@ class App(QMainWindow):
         self.chart5 = mapLevLat(self, self.level,
                                 self.latitude, tempMatrix, date, coltop, self.colMap, colBot, levMin, levMax, latMin,
                                 latMax)
-        self.tab1.layout.addWidget(self.chart5, 2, 0,1,1)
+        self.tab1.layout.addWidget(self.chart5, 2, 0, 1, 1)
         self.toolbar = NavigationToolbar(self.chart5, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab1.layout.addWidget(self.toolbar, 3, 0,1,1)
+        self.tab1.layout.addWidget(self.toolbar, 3, 0, 1, 1)
 
     @pyqtSlot()
     def dateMap3(self):
@@ -1248,30 +1264,33 @@ class App(QMainWindow):
             londTc.append(rowdTc2)
             londT.append(rowdT2)
 
+        epic_lat = self.crcLat.currentIndex()
+        epic_lon = self.crcLon.currentIndex()
+        epic_date = self.boxcrcDate.currentIndex() - index1
         colmap = self.cmapBox2.currentText()
         self.chart7 = plotLatLevDT(self, latdT, self.dates[index1:index2 + 1], self.latitude, colmap,
-                                   self.longtitude[longtitude])
+                                      self.longtitude[longtitude], epic_date, epic_lat)
         self.toolbar7 = NavigationToolbar(self.chart7, self)
         self.toolbar7.setOrientation(Qt.Horizontal)
         self.tab5.layout.addWidget(self.chart7, 1, 0, 2, 8)
         self.tab5.layout.addWidget(self.toolbar7, 3, 0, 1, 4)
 
         self.chart8 = plotLatLevDTc(self, latdTc, self.dates[index1:index2 + 1], self.latitude, colmap,
-                                    self.longtitude[longtitude])
+                                    self.longtitude[longtitude], epic_date, epic_lat)
         self.toolbar8 = NavigationToolbar(self.chart8, self)
         self.toolbar8.setOrientation(Qt.Horizontal)
         self.tab5.layout.addWidget(self.chart8, 1, 9, 2, 8)
         self.tab5.layout.addWidget(self.toolbar8, 3, 9, 1, 4)
 
         self.chart9 = plotLonLevDT(self, londT, self.dates[index1:index2 + 1], self.longtitude, colmap,
-                                   self.latitude[latitude])
+                                   self.latitude[latitude],epic_date,epic_lon)
         self.toolbar9 = NavigationToolbar(self.chart9, self)
         self.toolbar9.setOrientation(Qt.Horizontal)
         self.tab5.layout.addWidget(self.chart9, 4, 0, 2, 8)
         self.tab5.layout.addWidget(self.toolbar9, 6, 0, 1, 4)
 
         self.chart10 = plotLonLevDTc(self, londTc, self.dates[index1:index2 + 1], self.longtitude, colmap,
-                                     self.latitude[latitude])
+                                     self.latitude[latitude],epic_date,epic_lon)
         self.toolbar10 = NavigationToolbar(self.chart10, self)
         self.toolbar10.setOrientation(Qt.Horizontal)
         self.tab5.layout.addWidget(self.chart10, 4, 9, 2, 8)
