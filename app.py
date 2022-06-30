@@ -36,7 +36,7 @@ class plotTemp(FigureCanvas):
         self.ax.get_lines()[0].set_color(clr[0])
 
     def save4(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
         # fig.tight_layout()
 
@@ -69,7 +69,7 @@ class plotdeltaT(FigureCanvas):
         # fig.tight_layout()
 
     def save5(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
     def lineColor(self, color):
 
@@ -103,7 +103,7 @@ class plotdeltaTc(FigureCanvas):
         self.ax.grid()
 
     def save6(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class mapLonLat(FigureCanvas):
@@ -116,12 +116,11 @@ class mapLonLat(FigureCanvas):
         self.setParent(parent)
         m = Basemap(projection='merc', llcrnrlat=lat[latMinInd], urcrnrlat=lat[latMaxInd],
                     llcrnrlon=long[lonMinInd], urcrnrlon=long[lonMaxInd], lat_ts=20, resolution='i')
-        m.drawcountries()
         m.drawcoastlines(linewidth=0.5)
         xs, ys = np.meshgrid(long, lat)
         x, y = m(xs, ys)
-        m.drawparallels(np.arange(lat[4], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1)
-        merid = m.drawmeridians(np.arange(long[0], long[-1], 5), labels=[0, 0, 0, 1], linewidth=0.1)
+        m.drawparallels(np.arange(lat[4], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1, labelstyle='+/-')
+        merid = m.drawmeridians(np.arange(long[0], long[-1], 5), labels=[0, 0, 0, 1], linewidth=0.1, labelstyle='+/-')
         for k in merid:
             try:
                 merid[k][1][0].set_rotation(30)
@@ -141,11 +140,12 @@ class mapLonLat(FigureCanvas):
         self.ax.grid(color='w', linewidth=0.1)
 
     def save1(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class mapLevLat(FigureCanvas):
-    def __init__(self, parent, level, lat, matrix, date, coltop, colMap, colbot, levMin, levMax, latMin, latMax):
+    def __init__(self, parent, level, lat, matrix, date, coltop, colMap, colbot, levMin, levMax, latMin,
+                 latMax, lines_drawn, lat_epic):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
@@ -160,6 +160,9 @@ class mapLevLat(FigureCanvas):
         levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = self.ax.contourf(lat, h_km, matrix, levels, cmap=colMap)
         self.ax.set(title=date)
+        x, y = [lat[lat_epic], lat[lat_epic]], [h_km[0], h_km[-1]]
+        if lines_drawn:
+            plt.plot(x, y, 'r')
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(lat[latMin], lat[latMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
@@ -168,11 +171,12 @@ class mapLevLat(FigureCanvas):
         self.ax.grid(linewidth=0.1)
 
     def save2(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class mapLevLon(FigureCanvas):
-    def __init__(self, parent, lev, long, matrix, date, coltop, colMap, colbot, levMin, levMax, lonMin, lonMax):
+    def __init__(self, parent, lev, long, matrix, date, coltop, colMap, colbot, levMin, levMax, lonMin,
+                 lonMax, lines_drawn, lon_epic):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
@@ -187,6 +191,9 @@ class mapLevLon(FigureCanvas):
         levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = self.ax.contourf(long, h_km, matrix, levels, cmap=colMap)
         self.ax.set(title=date)
+        x, y = [long[lon_epic], long[lon_epic]], [h_km[0], h_km[-1]]
+        if lines_drawn:
+            plt.plot(x, y, 'r')
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(long[lonMin], long[lonMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
@@ -195,7 +202,7 @@ class mapLevLon(FigureCanvas):
         self.ax.grid(linewidth=0.1)
 
     def save3(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class plotLatLevDT(FigureCanvas):
@@ -215,15 +222,15 @@ class plotLatLevDT(FigureCanvas):
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
-        self.ax.set_ylim(lat[lat_min]-0.25, lat[lat_max]+0.25)
+        self.ax.set_ylim(lat[lat_min] - 0.25, lat[lat_max] + 0.25)
         self.ax.set(xlabel='Дата', ylabel='Широта')
         self.ax.grid(color='w', linewidth=0.1)
 
     def save7(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class plotLatLevDTc(FigureCanvas):
@@ -243,15 +250,15 @@ class plotLatLevDTc(FigureCanvas):
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
-        self.ax.set_ylim(lat[lat_min]-0.25, lat[lat_max]+0.25)
+        self.ax.set_ylim(lat[lat_min] - 0.25, lat[lat_max] + 0.25)
         self.ax.set(xlabel='Дата', ylabel='Широта')
         self.ax.grid(linewidth=0.1)
 
     def save8(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class plotLonLevDT(FigureCanvas):
@@ -271,15 +278,15 @@ class plotLonLevDT(FigureCanvas):
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
-        self.ax.set_ylim(lon[lon_min]-0.3125, lon[lon_max]+0.3125)
+        self.ax.set_ylim(lon[lon_min] - 0.3125, lon[lon_max] + 0.3125)
         self.ax.set(xlabel='Дата', ylabel='Долгота')
         self.ax.grid(linewidth=0.1)
 
     def save9(self, name, dpi, docFormat):
-        self.fig.savefig(name + docFormat, dpi=dpi)
+        self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class plotLonLevDTc(FigureCanvas):
@@ -299,15 +306,15 @@ class plotLonLevDTc(FigureCanvas):
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[4:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
-        self.ax.set_ylim(lon[lon_min]-0.3125, lon[lon_max]+0.3125)
+        self.ax.set_ylim(lon[lon_min] - 0.3125, lon[lon_max] + 0.3125)
         self.ax.set(xlabel='Дата', ylabel='Долгота')
         self.ax.grid(linewidth=0.1)
 
     def save10(self, name, dpi, docFormat):
-        plt.savefig(name + docFormat, dpi=dpi)
+        plt.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
 class App(QMainWindow):
@@ -899,10 +906,12 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def download(self):
-        boxes = [self.boxLat1, self.boxLatMax3,self.boxLatMin3, self.boxLat2, self.crcLat, self.boxLat3, self.boxLatMin1, self.boxLatMin2,
+        boxes = [self.boxLat1, self.boxLatMax3, self.boxLatMin3, self.boxLat2, self.crcLat, self.boxLat3,
+                 self.boxLatMin1, self.boxLatMin2,
                  self.boxLatMax1, self.boxLatMax2, self.boxLevel1, self.boxLevel2, self.boxLevMin1,
                  self.boxLevMin2, self.boxLevMax1, self.boxLevMax2, self.boxLon1, self.boxLon2, self.boxLon3,
-                 self.crcLon, self.boxLonMax2, self.boxLonMax1, self.boxLonMax3, self.boxLonMin3, self.boxLonMin1, self.boxLonMin2,
+                 self.crcLon, self.boxLonMax2, self.boxLonMax1, self.boxLonMax3, self.boxLonMin3, self.boxLonMin1,
+                 self.boxLonMin2,
                  self.boxDates, self.boxDates2, self.boxDates3, self.boxDatesMaxPlot2, self.boxDatesMaxPlot1,
                  self.boxDatesMinPlot2, self.boxDatesMinPlot1,
                  self.boxcrcDate]
@@ -946,6 +955,9 @@ class App(QMainWindow):
         self.boxDatesMinPlot2.setCurrentIndex(int(self.textLTA.text()))
         for box in boxes2:
             box.setCurrentIndex(box.count() - 1)
+
+        self.boxLevel1.setCurrentIndex(self.boxLevel1.count()-6)
+        self.boxLevel2.setCurrentIndex(self.boxLevel2.count()-2)
 
     def exit(self):
         exit()
@@ -1036,13 +1048,15 @@ class App(QMainWindow):
         latMax = self.boxLatMax2.currentIndex()
         coltop = float(self.top2.text().replace(',', '.'))
         colBot = float(self.bot2.text().replace(',', '.'))
+        lines_drawn = self.check_epic.isChecked()
+        lat_epic = self.crcLat.currentIndex()
         self.chart5 = mapLevLat(self, self.level,
                                 self.latitude, tempMatrix, date, coltop, self.colMap, colBot, levMin, levMax, latMin,
-                                latMax)
-        self.tab1.layout.addWidget(self.chart5, 0, 1, 1, 1)
+                                latMax, lines_drawn, lat_epic)
+        self.tab1.layout.addWidget(self.chart5, 2, 1, 1, 1)
         self.toolbar = NavigationToolbar(self.chart5, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab1.layout.addWidget(self.toolbar, 1, 1, 1, 1)
+        self.tab1.layout.addWidget(self.toolbar, 3, 1, 1, 1)
 
     @pyqtSlot()
     def dateMap3(self):
@@ -1071,9 +1085,11 @@ class App(QMainWindow):
         lonMax = self.boxLonMax2.currentIndex()
         coltop = float(self.top3.text().replace(',', '.'))
         colbot = float(self.bot3.text().replace(',', '.'))
+        lines_drawn = self.check_epic.isChecked()
+        lon_epic = self.crcLon.currentIndex()
         self.chart6 = mapLevLon(self, self.level,
                                 self.longtitude, tempMatrix, date, coltop, self.colMap, colbot, levMin, levMax, lonMin,
-                                lonMax)
+                                lonMax, lines_drawn, lon_epic)
         self.tab1.layout.addWidget(self.chart6, 2, 0)
         self.toolbar = NavigationToolbar(self.chart6, self)
         self.toolbar.setOrientation(Qt.Horizontal)
