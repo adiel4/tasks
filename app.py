@@ -28,7 +28,7 @@ class plotTemp(FigureCanvas):
         self.ax.set(xlabel='Дата', ylabel='Температура, К',
                     title='Температура(' + str(lonOne) + '$^\circ$N  ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks)
-        self.ax.set_xticklabels(dateLabels, rotation=45)
+        self.ax.set_xticklabels(dateLabels)
         self.ax.grid()
         self.ax.set_xlim(dates[dateMin], dates[dateMax])
 
@@ -63,7 +63,7 @@ class plotdeltaT(FigureCanvas):
         self.ax.set(xlabel='Дата', ylabel='STA/LTA',
                     title='STA/LTA(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks1)
-        self.ax.set_xticklabels(dateLabels1, rotation=90)
+        self.ax.set_xticklabels(dateLabels1)
         self.ax.grid()
         self.ax.set_xlim(dates[dateMin], dates[dateMax])
         # fig.tight_layout()
@@ -98,7 +98,7 @@ class plotdeltaTc(FigureCanvas):
         self.ax.set(xlabel='Дата', ylabel=r'$\delta$' + 'T',
                     title='Интегральный параметр(' + str(lonOne) + '$^\circ$N   ' + str(latOne) + '$^\circ$E)')
         self.ax.set_xticks(dateTicks1)
-        self.ax.set_xticklabels(dateLabels1, rotation=90)
+        self.ax.set_xticklabels(dateLabels1)
         self.ax.set_xlim(dates[dateMin], dates[dateMax])
         self.ax.grid()
 
@@ -119,13 +119,8 @@ class mapLonLat(FigureCanvas):
         m.drawcoastlines(linewidth=0.5)
         xs, ys = np.meshgrid(long, lat)
         x, y = m(xs, ys)
-        m.drawparallels(np.arange(lat[4], lat[-1], 4), labels=[1, 0, 0, 0], linewidth=0.1, labelstyle='+/-')
-        merid = m.drawmeridians(np.arange(long[0], long[-1], 5), labels=[0, 0, 0, 1], linewidth=0.1, labelstyle='+/-')
-        for k in merid:
-            try:
-                merid[k][1][0].set_rotation(30)
-            except:
-                pass
+        m.drawparallels(np.arange(lat[4], lat[-1], 5), labels=[1, 0, 0, 0], linewidth=0.1, labelstyle=' / ')
+        m.drawmeridians(np.arange(long[0], long[-1], 10), labels=[0, 0, 0, 1], linewidth=0.1, labelstyle=' / ')
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
@@ -222,7 +217,7 @@ class plotLatLevDT(FigureCanvas):
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]])
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
         self.ax.set_ylim(lat[lat_min] - 0.25, lat[lat_max] + 0.25)
@@ -250,7 +245,7 @@ class plotLatLevDTc(FigureCanvas):
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]])
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
         self.ax.set_ylim(lat[lat_min] - 0.25, lat[lat_max] + 0.25)
@@ -278,7 +273,7 @@ class plotLonLevDT(FigureCanvas):
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]])
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'T')
         self.ax.set_ylim(lon[lon_min] - 0.3125, lon[lon_max] + 0.3125)
@@ -306,7 +301,7 @@ class plotLonLevDTc(FigureCanvas):
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
-        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]], rotation=45)
+        self.ax.set_xticklabels([xlabel[6:8] for xlabel in dates[0:-1:16]])
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(r'$\delta$' + 'Tc')
         self.ax.set_ylim(lon[lon_min] - 0.3125, lon[lon_max] + 0.3125)
@@ -437,12 +432,16 @@ class App(QMainWindow):
         self.tab4 = QWidget(self)
         self.tab5 = QWidget(self)
         self.tab6 = QWidget(self)
+        self.tab7 = QWidget(self)
 
         self.tabs.addTab(self.tab1, "Карта(N/E)")
         self.tabs.addTab(self.tab4, "Профиль;STA/LTA")
         self.tabs.addTab(self.tab5, "Cрез(N/E)")
         self.tabs.addTab(self.tab6, 'Сохранение Графиков')
+        self.tabs.addTab(self.tab7, 'Сохранение Данных')
 
+        self.tab7.layout = QGridLayout(self.tab7)
+        self.tab7.setLayout(self.tab7.layout)
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
         self.tab4.layout = QGridLayout(self.tab4)
@@ -457,6 +456,13 @@ class App(QMainWindow):
         self.tab5.layout.setRowStretch(4, 4)
         self.tab5.layout.setRowStretch(3, 1)
         self.tab5.layout.setRowStretch(6, 1)
+
+        self.tab4.layout.setRowStretch(0, 5)
+        self.tab4.layout.setRowStretch(1, 1)
+        self.tab4.layout.setRowStretch(2, 5)
+        self.tab4.layout.setRowStretch(3, 1)
+        self.tab4.layout.setColumnStretch(0, 5)
+        self.tab4.layout.setColumnStretch(1, 5)
 
         ########### ВКЛАДКА: Срез() #################
 
@@ -627,113 +633,139 @@ class App(QMainWindow):
         for form in imgFormats:
             for box in box_formats:
                 box.addItem(form)
+
+        ######## СОХРАНЕНИЕ ДАННЫХ ###################
+        self.label_data1 = QLabel('File 1', self)
+        self.tab7.layout.addWidget(self.label_data1, 0, 0)
+        self.label_data1 = QLabel('File 2', self)
+        self.tab7.layout.addWidget(self.label_data1, 1, 0)
+        self.label_data1 = QLabel('File 3', self)
+        self.tab7.layout.addWidget(self.label_data1, 2, 0)
+        self.label_data1 = QLabel('File 4', self)
+        self.tab7.layout.addWidget(self.label_data1, 3, 0)
+        self.label_data1 = QLabel('File 5', self)
+        self.tab7.layout.addWidget(self.label_data1, 4, 0)
+        self.label_data1 = QLabel('File 6', self)
+        self.tab7.layout.addWidget(self.label_data1, 5, 0)
+        self.label_data1 = QLabel('File 7', self)
+        self.tab7.layout.addWidget(self.label_data1, 6, 0)
+        self.label_data1 = QLabel('File 8', self)
+        self.tab7.layout.addWidget(self.label_data1, 7, 0)
+        self.label_data1 = QLabel('File 9', self)
+        self.tab7.layout.addWidget(self.label_data1, 8, 0)
+        self.label_data1 = QLabel('File 10', self)
+        self.tab7.layout.addWidget(self.label_data1, 9, 0)
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
         self.tabsOptions = QTabWidget(self)
         self.tabsOptions.move(20, 300)
         self.tabsOptions.resize(300, 300)
 
-        self.tabLines = QWidget(self)
-        self.tabMark = QWidget(self)
+        self.tab_line_options = QTabWidget(self)
+        self.tab4.layout.addWidget(self.tab_line_options, 0, 1, 1, 1)
+
+        self.tab_line_properties = QWidget(self)
+        self.tab_line_markers = QWidget(self)
+        self.tab_line_options.addTab(self.tab_line_markers, 'Маркеры')
+        self.tab_line_options.addTab(self.tab_line_properties, 'Линии')
+        self.tab_line_properties.layout = QGridLayout(self.tab_line_properties)
+        self.tab_line_properties.setLayout(self.tab_line_properties.layout)
+        self.tab_line_markers.layout = QGridLayout(self.tab_line_markers)
+        self.tab_line_markers.setLayout(self.tab_line_markers.layout)
+
         self.tabMap = QWidget(self)
         self.tabLimits = QWidget(self)
 
-        self.tabsOptions.addTab(self.tabLines, 'Линии')
-        self.tabsOptions.addTab(self.tabMark, 'Маркеры')
         self.tabsOptions.addTab(self.tabMap, 'Карта')
         self.tabsOptions.addTab(self.tabLimits, 'Границы')
 
-        self.tabLines.layout = QGridLayout(self.tabLines)
-        self.tabLines.setLayout(self.tabLines.layout)
         self.tabMap.layout = QGridLayout(self.tabMap)
         self.tabMap.setLayout(self.tabMap.layout)
-        self.tabMark.layout = QGridLayout(self.tabMark)
-        self.tabMark.setLayout(self.tabMark.layout)
         self.tabLimits.layout = QGridLayout(self.tabLimits)
         self.tabLimits.setLayout(self.tabLimits.layout)
 
         ############### Вкладка: Свойства линий #####################
 
         self.labPlot1Wid = QLabel('Толщина и цвета линий:', self)
-        self.tabLines.layout.addWidget(self.labPlot1Wid, 0, 0)
+        self.tab_line_properties.layout.addWidget(self.labPlot1Wid, 0, 0)
         self.labPlot2Wid = QLabel('Толщина и цвета линий:', self)
-        self.tabLines.layout.addWidget(self.labPlot2Wid, 3, 0)
+        self.tab_line_properties.layout.addWidget(self.labPlot2Wid, 3, 0)
         self.labPlot3Wid = QLabel('Толщина и цвета линий:', self)
-        self.tabLines.layout.addWidget(self.labPlot3Wid, 6, 0)
+        self.tab_line_properties.layout.addWidget(self.labPlot3Wid, 6, 0)
         self.labPlot1Col = QLabel('Температурный профиль', self)
-        self.tabLines.layout.addWidget(self.labPlot1Col, 0, 3)
+        self.tab_line_properties.layout.addWidget(self.labPlot1Col, 0, 3)
         self.labPlot2Col = QLabel('STA/LTA профиль', self)
-        self.tabLines.layout.addWidget(self.labPlot2Col, 3, 3)
+        self.tab_line_properties.layout.addWidget(self.labPlot2Col, 3, 3)
         self.labPlot3Col = QLabel('Интегральный профиль', self)
-        self.tabLines.layout.addWidget(self.labPlot3Col, 6, 3)
+        self.tab_line_properties.layout.addWidget(self.labPlot3Col, 6, 3)
         self.textPlot1Line1Width = QLineEdit(self)
         self.textPlot1Line1Width.setText('1')
-        self.tabLines.layout.addWidget(self.textPlot1Line1Width, 1, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot1Line1Width, 1, 0)
         self.textPlot1Line2Width = QLineEdit(self)
         self.textPlot1Line2Width.setText('1')
-        self.tabLines.layout.addWidget(self.textPlot1Line2Width, 2, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot1Line2Width, 2, 0)
         self.textPlot2Line1Width = QLineEdit(self)
         self.textPlot2Line1Width.setText('0.8')
-        self.tabLines.layout.addWidget(self.textPlot2Line1Width, 4, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot2Line1Width, 4, 0)
         self.textPlot2Line2Width = QLineEdit(self)
         self.textPlot2Line2Width.setText('0.8')
-        self.tabLines.layout.addWidget(self.textPlot2Line2Width, 5, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot2Line2Width, 5, 0)
         self.textPlot3Line1Width = QLineEdit(self)
         self.textPlot3Line1Width.setText('0.8')
-        self.tabLines.layout.addWidget(self.textPlot3Line1Width, 7, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot3Line1Width, 7, 0)
         self.textPlot3Line2Width = QLineEdit(self)
         self.textPlot3Line2Width.setText('0.8')
-        self.tabLines.layout.addWidget(self.textPlot3Line2Width, 8, 0)
+        self.tab_line_properties.layout.addWidget(self.textPlot3Line2Width, 8, 0)
         self.boxPlot1Line1Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot1Line1Color, 1, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot1Line1Color, 1, 3)
         self.boxPlot1Line2Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot1Line2Color, 2, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot1Line2Color, 2, 3)
         self.boxPlot2Line1Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot2Line1Color, 4, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot2Line1Color, 4, 3)
         self.boxPlot2Line2Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot2Line2Color, 5, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot2Line2Color, 5, 3)
         self.boxPlot3Line1Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot3Line1Color, 7, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot3Line1Color, 7, 3)
         self.boxPlot3Line2Color = QComboBox(self)
-        self.tabLines.layout.addWidget(self.boxPlot3Line2Color, 8, 3)
+        self.tab_line_properties.layout.addWidget(self.boxPlot3Line2Color, 8, 3)
 
         ############### Вкладка: Свойства маркеров #####################
         self.labMark = QLabel('Размеры маркеров STA/LTA', self)
-        self.tabMark.layout.addWidget(self.labMark, 0, 0, 1, 4)
+        self.tab_line_markers.layout.addWidget(self.labMark, 0, 0, 1, 4)
         self.markW = QLineEdit(self)
         self.markW.setText('1')
-        self.tabMark.layout.addWidget(self.markW, 1, 0)
+        self.tab_line_markers.layout.addWidget(self.markW, 1, 0)
         self.markW2 = QLineEdit(self)
         self.markW2.setText('1')
         self.boxcol = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxcol, 1, 1)
+        self.tab_line_markers.layout.addWidget(self.boxcol, 1, 1)
         self.boxcol2 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxcol2, 1, 3)
+        self.tab_line_markers.layout.addWidget(self.boxcol2, 1, 3)
         self.labMark2 = QLabel('Форма маркеров STA/LTA', self)
-        self.tabMark.layout.addWidget(self.labMark2, 2, 0, 1, 4)
-        self.tabMark.layout.addWidget(self.markW2, 1, 2)
+        self.tab_line_markers.layout.addWidget(self.labMark2, 2, 0, 1, 4)
+        self.tab_line_markers.layout.addWidget(self.markW2, 1, 2)
         self.boxMark = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxMark, 3, 0, 1, 2)
+        self.tab_line_markers.layout.addWidget(self.boxMark, 3, 0, 1, 2)
         self.boxMark2 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxMark2, 3, 2, 1, 2)
+        self.tab_line_markers.layout.addWidget(self.boxMark2, 3, 2, 1, 2)
         self.labMark3 = QLabel('Размеры маркеров интег. проф.', self)
-        self.tabMark.layout.addWidget(self.labMark3, 4, 0, 1, 4)
+        self.tab_line_markers.layout.addWidget(self.labMark3, 4, 0, 1, 4)
         self.markW3 = QLineEdit(self)
         self.markW3.setText('1')
-        self.tabMark.layout.addWidget(self.markW3, 5, 0)
+        self.tab_line_markers.layout.addWidget(self.markW3, 5, 0)
         self.markW4 = QLineEdit(self)
         self.markW4.setText('1')
-        self.tabMark.layout.addWidget(self.markW4, 5, 2)
+        self.tab_line_markers.layout.addWidget(self.markW4, 5, 2)
         self.labMark3 = QLabel('Форма маркеров интег. проф.', self)
-        self.tabMark.layout.addWidget(self.labMark3, 6, 0, 1, 4)
+        self.tab_line_markers.layout.addWidget(self.labMark3, 6, 0, 1, 4)
         self.boxcol3 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxcol3, 5, 1)
+        self.tab_line_markers.layout.addWidget(self.boxcol3, 5, 1)
         self.boxcol4 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxcol4, 5, 3)
+        self.tab_line_markers.layout.addWidget(self.boxcol4, 5, 3)
         self.boxMark3 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxMark3, 7, 0, 1, 2)
+        self.tab_line_markers.layout.addWidget(self.boxMark3, 7, 0, 1, 2)
         self.boxMark4 = QComboBox(self)
-        self.tabMark.layout.addWidget(self.boxMark4, 7, 2, 1, 2)
+        self.tab_line_markers.layout.addWidget(self.boxMark4, 7, 2, 1, 2)
 
         markForm = [
             ' Нет маркеров',
@@ -956,8 +988,8 @@ class App(QMainWindow):
         for box in boxes2:
             box.setCurrentIndex(box.count() - 1)
 
-        self.boxLevel1.setCurrentIndex(self.boxLevel1.count()-6)
-        self.boxLevel2.setCurrentIndex(self.boxLevel2.count()-2)
+        self.boxLevel1.setCurrentIndex(self.boxLevel1.count() - 6)
+        self.boxLevel2.setCurrentIndex(self.boxLevel2.count() - 2)
 
     def exit(self):
         exit()
@@ -970,12 +1002,14 @@ class App(QMainWindow):
         lta = int(self.textLTA.text())
         sta = int(self.textSTA.text())
         isC = self.isC.isChecked()
-        tempMatrix = []
+        temp_matrix_c = []
+        temp_matrix = []
         if lta > self.dates.index(date):
             return None
 
         for i, lat in enumerate(self.latitude):
             row = []
+            row2 = []
             for j, lon in enumerate(self.longtitude):
                 temp1LTA = []
                 temp2LTA = []
@@ -986,19 +1020,18 @@ class App(QMainWindow):
                 temp2STA = temp2LTA[-sta:]
                 lS1 = np.std(temp1STA) / np.std(temp1LTA)
                 lS2 = np.std(temp2STA) / np.std(temp2LTA)
-                if isC == True:
-                    r = np.corrcoef(temp1STA, temp2STA)[0][1]
-                    name = r'$\delta$' + 'Tc'
-                    if (lS1 * lS2) * r >= 0:
-                        result = 0
-                    else:
-                        result = (lS1 * lS2) * np.abs(r)
+                r = np.corrcoef(temp1STA, temp2STA)[0][1]
+                if r < 0:
+                    result = (lS1 * lS2) * np.abs(r)
                 else:
-                    r = 1
-                    name = r'$\delta$' + 'T'
-                    result = lS1 * lS2
+                    result = 0
+
+                name = r'$\delta$' + 'T'
+                result2 = lS1 * lS2
+                row2.append(result2)
                 row.append(result)
-            tempMatrix.append(row)
+            temp_matrix_c.append(row)
+            temp_matrix.append(row2)
 
         latMin = self.boxLatMin1.currentIndex()
         latMax = self.boxLatMax1.currentIndex()
@@ -1012,14 +1045,22 @@ class App(QMainWindow):
         clat = self.latitude.index(float(self.crcLat.currentText()))
         clon = self.longtitude.index(float(self.crcLon.currentText()))
         self.chart4 = mapLonLat(self, self.longtitude,
-                                self.latitude, tempMatrix, date, colTop, name, clat, clon, self.colMap, colBot, crclCol,
+                                self.latitude, temp_matrix_c, date, colTop, r'$\delta$' + 'Tc', clat, clon, self.colMap,
+                                colBot, crclCol,
                                 crclSize, latMin, latMax, lonMin, lonMax)
-
+        self.chart11 = mapLonLat(self, self.longtitude,
+                                 self.latitude, temp_matrix, date, colTop, r'$\delta$' + 'T', clat, clon, self.colMap,
+                                 colBot, crclCol,
+                                 crclSize, latMin, latMax, lonMin, lonMax)
         self.tab1.layout.addWidget(self.chart4, 0, 0, 1, 1)
         self.toolbar = NavigationToolbar(self.chart4, self)
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab1.layout.addWidget(self.toolbar, 1, 0, 1, 1)
-        pass
+
+        self.tab1.layout.addWidget(self.chart11, 0, 1, 1, 1)
+        self.toolbar11 = NavigationToolbar(self.chart11, self)
+        self.toolbar11.setOrientation(Qt.Horizontal)
+        self.tab1.layout.addWidget(self.toolbar11, 1, 1, 1, 1)
 
     @pyqtSlot()
     def dateMap2(self):
@@ -1124,11 +1165,10 @@ class App(QMainWindow):
                 k[self.level.index(levOne)][self.latitude.index(latOne)][self.longtitude.index(lonOne)])
             self.tempLevOneCoorTwo.append(
                 k[self.level.index(levTwo)][self.latitude.index(latOne)][self.longtitude.index(lonOne)])
-        dateTicks = self.dates[0:-1:30]
+        dateTicks = self.dates[0:-1:50]
         dateLabels = []
-
         for i in dateTicks:
-            dateLabels.append(i[4:8])
+            dateLabels.append(i[6:8])
         width1 = float(self.textPlot1Line2Width.text().replace(',', '.'))
         width2 = float(self.textPlot1Line1Width.text().replace(',', '.'))
         clr1 = self.boxPlot1Line2Color.currentText()
@@ -1140,7 +1180,7 @@ class App(QMainWindow):
         dateMax1 = self.boxDatesMaxPlot1.currentIndex()
         self.chart = plotTemp(self, self.dates, self.tempLevOneCoorOne, self.tempLevOneCoorTwo, dateTicks, dateLabels,
                               clr1, clr2, width1, width2, name1, name2, latOne, lonOne, dateMin1, dateMax1)
-        self.tab4.layout.addWidget(self.chart, 0, 0, 1, 2)
+        self.tab4.layout.addWidget(self.chart, 0, 0, 1, 1)
         self.toolbar = NavigationToolbar(self.chart, self)
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab4.layout.addWidget(self.toolbar, 1, 0, 1, 1)
@@ -1171,10 +1211,10 @@ class App(QMainWindow):
                 result = stalta * stalta2 * np.abs(coef)
                 integArraywR.append(result)
 
-        dateTicks = self.dates[lta:][0:-1:30]
+        dateTicks = self.dates[lta:][0:-1:50]
         dateLabels = []
         for i in dateTicks:
-            dateLabels.append(i[4:8])
+            dateLabels.append(i[6:8])
 
         clr1 = self.boxPlot2Line1Color.currentText()
         clr2 = self.boxPlot2Line2Color.currentText()
