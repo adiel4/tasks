@@ -1,18 +1,15 @@
 import sys
-from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
-import matplotlib.image as mpimg
+
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QThread, QObject
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QFileDialog, QCheckBox, QGridLayout, QTabWidget, QApplication, QWidget, QLabel, \
     QPushButton, QMainWindow, QLineEdit, QComboBox, QToolTip
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.basemap import Basemap
 from scipy.signal import find_peaks
-import matplotlib
 
 
 class plotTemp(FigureCanvas):
@@ -119,8 +116,10 @@ class mapLonLat(FigureCanvas):
         m.drawcoastlines(linewidth=0.5)
         xs, ys = np.meshgrid(long, lat)
         x, y = m(xs, ys)
-        m.drawparallels(np.arange(lat[4], lat[-1], 5), labels=[1, 0, 0, 0], linewidth=0.1, labelstyle=' / ')
-        m.drawmeridians(np.arange(long[0], long[-1], 10), labels=[0, 0, 0, 1], linewidth=0.1, labelstyle=' / ')
+        m.drawparallels(np.arange(lat[4], lat[-1], 5), labels=[1, 0, 0, 0], linewidth=0.1
+                        , fmt=(lambda x: (u"%d\N{DEGREE SIGN}") % (x)))
+        m.drawmeridians(np.arange(long[0], long[-1], 10), labels=[0, 0, 0, 1], linewidth=0.1
+                        , fmt=(lambda x: (u"%d\N{DEGREE SIGN}") % (x)))
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
@@ -128,14 +127,17 @@ class mapLonLat(FigureCanvas):
         self.ax.set_title(date, )
         clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(name, fontsize=10)
-        self.ax.set_xlabel('Долгота', labelpad=20)
-        self.ax.set_ylabel('Широта', labelpad=30)
+        self.ax.set_xlabel('Долгота, °E', labelpad=20)
+        self.ax.set_ylabel('Широта, °N', labelpad=30)
         coord = m(long[clon], lat[clat])
         self.ax.plot(coord[0], coord[1], color=crclCol[0], marker='*', markersize=float(crclSize[:-2]) * 10)
         self.ax.grid(color='w', linewidth=0.1)
 
     def save1(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
+
+    def get_figure(self):
+        return self.fig
 
 
 class mapLevLat(FigureCanvas):
@@ -162,11 +164,14 @@ class mapLevLat(FigureCanvas):
         self.ax.set_xlim(lat[latMin], lat[latMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
         clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
-        self.ax.set(xlabel='Широта', ylabel='Высота,км')
+        self.ax.set(xlabel='Широта, °N', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
     def save2(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
+
+    def get_figure(self):
+        return self.fig
 
 
 class mapLevLon(FigureCanvas):
@@ -193,11 +198,14 @@ class mapLevLon(FigureCanvas):
         self.ax.set_xlim(long[lonMin], long[lonMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
         clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
-        self.ax.set(xlabel='Долгота', ylabel='Высота,км')
+        self.ax.set(xlabel='Долгота, °E', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
     def save3(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
+
+    def get_figure(self):
+        return self.fig
 
 
 class plotLatLevDT(FigureCanvas):
@@ -438,10 +446,7 @@ class App(QMainWindow):
         self.tabs.addTab(self.tab4, "Профиль;STA/LTA")
         self.tabs.addTab(self.tab5, "Cрез(N/E)")
         self.tabs.addTab(self.tab6, 'Сохранение Графиков')
-        self.tabs.addTab(self.tab7, 'Сохранение Данных')
 
-        self.tab7.layout = QGridLayout(self.tab7)
-        self.tab7.setLayout(self.tab7.layout)
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
         self.tab4.layout = QGridLayout(self.tab4)
@@ -634,27 +639,6 @@ class App(QMainWindow):
             for box in box_formats:
                 box.addItem(form)
 
-        ######## СОХРАНЕНИЕ ДАННЫХ ###################
-        self.label_data1 = QLabel('File 1', self)
-        self.tab7.layout.addWidget(self.label_data1, 0, 0)
-        self.label_data1 = QLabel('File 2', self)
-        self.tab7.layout.addWidget(self.label_data1, 1, 0)
-        self.label_data1 = QLabel('File 3', self)
-        self.tab7.layout.addWidget(self.label_data1, 2, 0)
-        self.label_data1 = QLabel('File 4', self)
-        self.tab7.layout.addWidget(self.label_data1, 3, 0)
-        self.label_data1 = QLabel('File 5', self)
-        self.tab7.layout.addWidget(self.label_data1, 4, 0)
-        self.label_data1 = QLabel('File 6', self)
-        self.tab7.layout.addWidget(self.label_data1, 5, 0)
-        self.label_data1 = QLabel('File 7', self)
-        self.tab7.layout.addWidget(self.label_data1, 6, 0)
-        self.label_data1 = QLabel('File 8', self)
-        self.tab7.layout.addWidget(self.label_data1, 7, 0)
-        self.label_data1 = QLabel('File 9', self)
-        self.tab7.layout.addWidget(self.label_data1, 8, 0)
-        self.label_data1 = QLabel('File 10', self)
-        self.tab7.layout.addWidget(self.label_data1, 9, 0)
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
         self.tabsOptions = QTabWidget(self)
@@ -675,15 +659,18 @@ class App(QMainWindow):
 
         self.tabMap = QWidget(self)
         self.tabLimits = QWidget(self)
+        self.tabData = QWidget(self)
 
         self.tabsOptions.addTab(self.tabMap, 'Карта')
         self.tabsOptions.addTab(self.tabLimits, 'Границы')
+        self.tabsOptions.addTab(self.tabData, 'Данные')
 
         self.tabMap.layout = QGridLayout(self.tabMap)
         self.tabMap.setLayout(self.tabMap.layout)
         self.tabLimits.layout = QGridLayout(self.tabLimits)
         self.tabLimits.setLayout(self.tabLimits.layout)
-
+        self.tabData.layout = QGridLayout(self.tabData)
+        self.tabData.setLayout(self.tabData.layout)
         ############### Вкладка: Свойства линий #####################
 
         self.labPlot1Wid = QLabel('Толщина и цвета линий:', self)
@@ -931,6 +918,28 @@ class App(QMainWindow):
         self.boxLatMax3 = QComboBox(self)
         self.tabLimits.layout.addWidget(self.boxLatMax3, 11, 3, 1, 1)
 
+        ################### Вкладка: Данны #############################
+        self.label_tab_data = QLabel('Данные:', self)
+        self.tabData.layout.addWidget(self.label_tab_data, 0, 0, 1, 1)
+        self.box_data_type = QComboBox(self)
+        self.tabData.layout.addWidget(self.box_data_type, 0, 1, 1, 3)
+        datas = ['Карта(N/E)', 'Карта(N/h)', 'Карта(E/h)', 'Температура', 'STA/LTA', 'Интегральный параметр'
+            , 'Простр. срез(широта.dT)', 'Простр. срез(широта.dTc)', 'Простр. срез(долгота.dT)'
+            , 'Простр. срез(dTc)']
+        for i in datas:
+            self.box_data_type.addItem(i)
+        self.label_tab_data2 = QLabel('Сохранить как: ', self)
+        self.tabData.layout.addWidget(self.label_tab_data2, 1, 0, 1, 1)
+        self.txtFileName = QLineEdit(self)
+        self.txtFileName.setText('File1')
+        self.tabData.layout.addWidget(self.txtFileName, 1, 1, 1, 1)
+        self.box_file_type = QComboBox(self)
+        self.box_file_type.addItem('.csv')
+        self.tabData.layout.addWidget(self.box_file_type, 1, 2, 1, 1)
+        self.btn_save_data = QPushButton('Сохранить', self)
+        self.tabData.layout.addWidget(self.btn_save_data, 1, 3, 1, 1)
+        self.btn_save_data.clicked.connect(self.save_data)
+
         self.filedialog = QFileDialog()
         self.setGeometry(0, 0, 1300, 700)
         self.setWindowTitle('Algorithm')
@@ -992,18 +1001,24 @@ class App(QMainWindow):
         self.boxLevel2.setCurrentIndex(self.boxLevel2.count() - 2)
 
     def exit(self):
-        exit()
+        from matplotlib.backends.backend_pdf import PdfPages
+        pdf = PdfPages('adilet.pdf')
+        figures = [self.chart4.get_figure(), self.chart11.get_figure(), self.chart5.get_figure(),
+                   self.chart6.get_figure()]
+        for figure in figures:
+            pdf.savefig(figure)
+        pdf.close()
 
     @pyqtSlot()
     def dateMap(self):
+        QApplication.processEvents()
         lev = float(self.boxLevel1.currentText())
         lev2 = float(self.boxLevel2.currentText())
         date = self.boxDates.currentText()
         lta = int(self.textLTA.text())
         sta = int(self.textSTA.text())
-        isC = self.isC.isChecked()
-        temp_matrix_c = []
-        temp_matrix = []
+        self.temp_matrix_c = []
+        self.temp_matrix = []
         if lta > self.dates.index(date):
             return None
 
@@ -1030,8 +1045,8 @@ class App(QMainWindow):
                 result2 = lS1 * lS2
                 row2.append(result2)
                 row.append(result)
-            temp_matrix_c.append(row)
-            temp_matrix.append(row2)
+            self.temp_matrix_c.append(row)
+            self.temp_matrix.append(row2)
 
         latMin = self.boxLatMin1.currentIndex()
         latMax = self.boxLatMax1.currentIndex()
@@ -1044,12 +1059,15 @@ class App(QMainWindow):
         colBot = float(self.bot1.text().replace(',', '.'))
         clat = self.latitude.index(float(self.crcLat.currentText()))
         clon = self.longtitude.index(float(self.crcLon.currentText()))
+
         self.chart4 = mapLonLat(self, self.longtitude,
-                                self.latitude, temp_matrix_c, date, colTop, r'$\delta$' + 'Tc', clat, clon, self.colMap,
+                                self.latitude, self.temp_matrix_c, date, colTop, r'$\delta$' + 'Tc', clat, clon,
+                                self.colMap,
                                 colBot, crclCol,
                                 crclSize, latMin, latMax, lonMin, lonMax)
         self.chart11 = mapLonLat(self, self.longtitude,
-                                 self.latitude, temp_matrix, date, colTop, r'$\delta$' + 'T', clat, clon, self.colMap,
+                                 self.latitude, self.temp_matrix, date, colTop, r'$\delta$' + 'T', clat, clon,
+                                 self.colMap,
                                  colBot, crclCol,
                                  crclSize, latMin, latMax, lonMin, lonMax)
         self.tab1.layout.addWidget(self.chart4, 0, 0, 1, 1)
@@ -1064,6 +1082,7 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def dateMap2(self):
+        QApplication.processEvents()
         date = self.boxDates.currentText()
         lattit = float(self.boxLon2.currentText())
         lta = int(self.textLTA.text())
@@ -1071,7 +1090,7 @@ class App(QMainWindow):
 
         if lta > self.dates.index(date):
             return None
-        tempMatrix = []
+        self.lev_lat_matrix = []
         for i, lev in enumerate(self.level):
             row = []
             for j, lat in enumerate(self.latitude):
@@ -1081,7 +1100,7 @@ class App(QMainWindow):
                 tempSTA = tempLTA[-sta:]
                 lS = np.std(tempSTA) / np.std(tempLTA)
                 row.append(lS)
-            tempMatrix.append(row)
+            self.lev_lat_matrix.append(row)
 
         levMin = self.boxLevMin1.currentIndex()
         levMax = self.boxLevMax1.currentIndex()
@@ -1091,8 +1110,10 @@ class App(QMainWindow):
         colBot = float(self.bot2.text().replace(',', '.'))
         lines_drawn = self.check_epic.isChecked()
         lat_epic = self.crcLat.currentIndex()
+
         self.chart5 = mapLevLat(self, self.level,
-                                self.latitude, tempMatrix, date, coltop, self.colMap, colBot, levMin, levMax, latMin,
+                                self.latitude, self.lev_lat_matrix, date, coltop, self.colMap, colBot, levMin, levMax,
+                                latMin,
                                 latMax, lines_drawn, lat_epic)
         self.tab1.layout.addWidget(self.chart5, 2, 1, 1, 1)
         self.toolbar = NavigationToolbar(self.chart5, self)
@@ -1101,6 +1122,7 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def dateMap3(self):
+        QApplication.processEvents()
         date = self.boxDates.currentText()
         long = float(self.boxLat2.currentText())
         lta = int(self.textLTA.text())
@@ -1108,7 +1130,7 @@ class App(QMainWindow):
 
         if lta > self.dates.index(date):
             return None
-        tempMatrix = []
+        self.lev_lon_matrix = []
         for i, lev in enumerate(self.level):
             row = []
             for j, lon in enumerate(self.longtitude):
@@ -1118,7 +1140,7 @@ class App(QMainWindow):
                 tempSTA = tempLTA[-sta:]
                 lS = np.std(tempSTA) / np.std(tempLTA)
                 row.append(lS)
-            tempMatrix.append(row)
+            self.lev_lon_matrix.append(row)
 
         levMin = self.boxLevMin2.currentIndex()
         levMax = self.boxLevMax2.currentIndex()
@@ -1128,13 +1150,29 @@ class App(QMainWindow):
         colbot = float(self.bot3.text().replace(',', '.'))
         lines_drawn = self.check_epic.isChecked()
         lon_epic = self.crcLon.currentIndex()
+
         self.chart6 = mapLevLon(self, self.level,
-                                self.longtitude, tempMatrix, date, coltop, self.colMap, colbot, levMin, levMax, lonMin,
+                                self.longtitude, self.lev_lon_matrix, date, coltop, self.colMap, colbot, levMin, levMax,
+                                lonMin,
                                 lonMax, lines_drawn, lon_epic)
         self.tab1.layout.addWidget(self.chart6, 2, 0)
         self.toolbar = NavigationToolbar(self.chart6, self)
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab1.layout.addWidget(self.toolbar, 3, 0)
+
+    def save_pdf(self):
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        figures = [self.chart4.get_figure(), self.chart11.get_figure(), self.chart5.get_figure(),
+                   self.chart6.get_figure()]
+        pdf1, pdf2, pdf3, pdf4 = PdfPages('Карта(dTc)(N/E).pdf'), PdfPages('Карта(dT)(N/E).pdf'), PdfPages(
+            'Карта(dT)(N/h).pdf'), PdfPages('Карта(dT)(E/h).pdf')
+        pdfs = [pdf1, pdf2, pdf3, pdf4]
+        for i in range(len(figures)):
+            pdfs[i].savefig(figures[i])
+            pdfs[i].close()
+        print(figures)
+        pass
 
     @pyqtSlot()
     def NextMap(self):
@@ -1185,10 +1223,10 @@ class App(QMainWindow):
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab4.layout.addWidget(self.toolbar, 1, 0, 1, 1)
 
-        arrayLev1 = []
-        arrayLev2 = []
-        integArray = []
-        integArraywR = []
+        self.arrayLev1 = []
+        self.arrayLev2 = []
+        self.integArray = []
+        self.integArraywR = []
 
         for i in range(lta, len(self.tempLevOneCoorTwo), 1):
             index1 = i - lta
@@ -1199,17 +1237,17 @@ class App(QMainWindow):
             sTA2 = np.std(self.tempLevOneCoorOne[:i][-sta:])
             stalta = sTA / lTA
             stalta2 = sTA2 / lTA2
-            arrayLev1.append(stalta)
-            arrayLev2.append(stalta2)
-            integArray.append(stalta * stalta2)
+            self.arrayLev1.append(stalta)
+            self.arrayLev2.append(stalta2)
+            self.integArray.append(stalta * stalta2)
             coef = np.corrcoef(self.tempLevOneCoorTwo[:i][-sta:], self.tempLevOneCoorOne[:i][-sta:])[0][1]
 
             if stalta * stalta2 * coef >= 0:
                 result = 0
-                integArraywR.append(result)
+                self.integArraywR.append(result)
             else:
                 result = stalta * stalta2 * np.abs(coef)
-                integArraywR.append(result)
+                self.integArraywR.append(result)
 
         dateTicks = self.dates[lta:][0:-1:50]
         dateLabels = []
@@ -1242,14 +1280,16 @@ class App(QMainWindow):
         #     dateMin3 = 0
         # dateMax3 = self.boxDatesMaxPlot3.currentIndex() - start
         self.chart2 = plotdeltaT(
-            self, self.dates[lta:], arrayLev1, arrayLev2, dateTicks, dateLabels, clr1, clr2, width1, width2, form1,
+            self, self.dates[lta:], self.arrayLev1, self.arrayLev2, dateTicks, dateLabels, clr1, clr2, width1, width2,
+            form1,
             form2, marCol1, marCol2, name1, name2, latOne, lonOne, dateMin2, dateMax2)
 
         self.toolbar2 = NavigationToolbar(self.chart2, self)
         self.toolbar2.setOrientation(Qt.Horizontal)
 
         self.chart3 = plotdeltaTc(
-            self, self.dates[lta:], integArray, integArraywR, dateTicks, dateLabels, clr3, clr4, width3, width4, form3,
+            self, self.dates[lta:], self.integArray, self.integArraywR, dateTicks, dateLabels, clr3, clr4, width3,
+            width4, form3,
             form4, marCol3, marCol4, latOne, lonOne, dateMin2, dateMax2)
         self.toolbar3 = NavigationToolbar(self.chart3, self)
         self.toolbar3.setOrientation(Qt.Horizontal)
@@ -1263,7 +1303,7 @@ class App(QMainWindow):
         index1, index2 = self.boxDates2.currentIndex(), self.boxDates3.currentIndex()
         lta, sta = int(self.textLTA.text()), int(self.textSTA.text())
         latitude, longtitude = self.boxLat3.currentIndex(), self.boxLon3.currentIndex()
-        latdT, londT, latdTc, londTc = [], [], [], []
+        self.latdT, self.londT, self.latdTc, self.londTc = [], [], [], []
         if index1 < lta:
             return
         levOne = self.boxLevel1.currentIndex()
@@ -1293,8 +1333,8 @@ class App(QMainWindow):
                     result = sL1 * sL3 * np.abs(coef)
                     rowdTc1.append(result)
                 rowdT1.append(sL1)
-            latdT.append(rowdT1)
-            latdTc.append(rowdTc1)
+            self.latdT.append(rowdT1)
+            self.latdTc.append(rowdTc1)
 
         for j, lon in enumerate(self.longtitude):
             rowdT2 = []
@@ -1321,8 +1361,8 @@ class App(QMainWindow):
                     result = sL2 * sL4 * np.abs(coef)
                     rowdTc2.append(result)
                 rowdT2.append(sL2 * sL4)
-            londTc.append(rowdTc2)
-            londT.append(rowdT2)
+            self.londTc.append(rowdTc2)
+            self.londT.append(rowdT2)
 
         epic_lat = self.crcLat.currentIndex()
         epic_lon = self.crcLon.currentIndex()
@@ -1332,7 +1372,7 @@ class App(QMainWindow):
 
         lat_min, lat_max = self.boxLatMin3.currentIndex(), self.boxLatMax3.currentIndex()
         lon_min, lon_max = self.boxLonMin3.currentIndex(), self.boxLonMax3.currentIndex()
-        self.chart7 = plotLatLevDT(self, latdT, self.dates[index1:index2 + 1], self.latitude, colmap,
+        self.chart7 = plotLatLevDT(self, self.latdT, self.dates[index1:index2 + 1], self.latitude, colmap,
                                    self.longtitude[longtitude], epic_date, epic_lat, lines_drawn,
                                    lat_min, lat_max)
         self.toolbar7 = NavigationToolbar(self.chart7, self)
@@ -1340,7 +1380,7 @@ class App(QMainWindow):
         self.tab5.layout.addWidget(self.chart7, 1, 0, 2, 8)
         self.tab5.layout.addWidget(self.toolbar7, 3, 0, 1, 4)
 
-        self.chart8 = plotLatLevDTc(self, latdTc, self.dates[index1:index2 + 1], self.latitude, colmap,
+        self.chart8 = plotLatLevDTc(self, self.latdTc, self.dates[index1:index2 + 1], self.latitude, colmap,
                                     self.longtitude[longtitude], epic_date, epic_lat, lines_drawn,
                                     lat_min, lat_max)
         self.toolbar8 = NavigationToolbar(self.chart8, self)
@@ -1348,15 +1388,16 @@ class App(QMainWindow):
         self.tab5.layout.addWidget(self.chart8, 1, 9, 2, 8)
         self.tab5.layout.addWidget(self.toolbar8, 3, 9, 1, 4)
 
-        self.chart9 = plotLonLevDT(self, londT, self.dates[index1:index2 + 1], self.longtitude, colmap,
+        self.chart9 = plotLonLevDT(self, self.londT, self.dates[index1:index2 + 1], self.longtitude, colmap,
                                    self.latitude[latitude], epic_date, epic_lon, lines_drawn,
                                    lon_min, lon_max)
         self.toolbar9 = NavigationToolbar(self.chart9, self)
         self.toolbar9.setOrientation(Qt.Horizontal)
+
         self.tab5.layout.addWidget(self.chart9, 4, 0, 2, 8)
         self.tab5.layout.addWidget(self.toolbar9, 6, 0, 1, 4)
 
-        self.chart10 = plotLonLevDTc(self, londTc, self.dates[index1:index2 + 1], self.longtitude, colmap,
+        self.chart10 = plotLonLevDTc(self, self.londTc, self.dates[index1:index2 + 1], self.longtitude, colmap,
                                      self.latitude[latitude], epic_date, epic_lon, lines_drawn,
                                      lon_min, lon_max)
         self.toolbar10 = NavigationToolbar(self.chart10, self)
@@ -1482,6 +1523,36 @@ class App(QMainWindow):
         try:
             self.chart10.save10(directory + '/' + name, dpi, form)
         except:
+            return None
+
+    def save_data(self):
+
+        a = self.box_data_type.currentIndex()
+        directory = str(QFileDialog.getExistingDirectory(self, 'Select directory'))
+        filename = self.txtFileName.text()
+        filetype = self.box_file_type.currentText()
+        if (filename == '' or filename is None) or (directory == '' or directory is None):
+            return None
+        if a <= 2 and a >= 0:
+            try:
+                list1 = [self.temp_matrix_c, self.lev_lat_matrix, self.lev_lon_matrix]
+            except:
+                return None
+            np.savetxt(directory + '/' + filename + filetype, list1[a], delimiter=',', fmt='%f')
+        elif a >= 3 and a <= 5:
+            try:
+                list2 = [[self.tempLevOneCoorTwo, self.tempLevOneCoorOne], [self.arrayLev1, self.arrayLev2],
+                         [self.integArray, self.integArraywR]]
+            except:
+                return None
+            np.savetxt(directory + '/' + filename + filetype, list2[3 - a], delimiter=',', fmt='%f')
+        elif a > 5:
+            try:
+                list3 = [self.latdT, self.latdTc, self.londT, self.londTc]
+            except:
+                return None
+            np.savetxt(directory + '/' + filename + filetype, list3[6 - a], delimiter=',', fmt='%f')
+        else:
             return None
 
 
