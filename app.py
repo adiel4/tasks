@@ -1,5 +1,7 @@
 import sys
+import time
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QThread, QObject
@@ -10,12 +12,16 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.basemap import Basemap
 from scipy.signal import find_peaks
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 class plotTemp(FigureCanvas):
     def __init__(self, parent, dates, lineOne, lineTwo, dateTicks, dateLabels, clr1, clr2, w1, w2, name1, name2, latOne,
                  lonOne, dateMin, dateMax):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
         super().__init__(self.fig)
         self.setParent(parent)
@@ -42,6 +48,9 @@ class plotdeltaT(FigureCanvas):
     def __init__(self, parent, dates, dataForPlot, dataForPlot2, dateTicks1, dateLabels1, clr1, clr2, w1, w2, f1, f2,
                  marc1, marc2, name1, name2, latOne, lonOne, dateMin, dateMax):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
         super().__init__(self.fig)
         self.setParent(parent)
@@ -77,6 +86,9 @@ class plotdeltaTc(FigureCanvas):
     def __init__(self, parent, dates, dataForPlot, dataForPlot2, dateTicks1, dateLabels1, clr1, clr2, w1, w2, f1, f2,
                  mc1, mc2, latOne, lonOne, dateMin, dateMax):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=True, dpi=120)
         super().__init__(self.fig)
         self.setParent(parent)
@@ -108,6 +120,9 @@ class mapLonLat(FigureCanvas):
                  latMinInd, latMaxInd, lonMinInd, lonMaxInd):
         plt.close('all')
         self.fig, self.ax = plt.subplots(constrained_layout=False)
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
         self.setParent(parent)
@@ -124,11 +139,11 @@ class mapLonLat(FigureCanvas):
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = m.contourf(x, y, matrix, self.levels, cmap=colMap)
-        self.ax.set_title(date, )
+        self.ax.set_title(date)
         clb = self.fig.colorbar(ac, orientation='vertical')
-        clb.ax.set_title(name, fontsize=10)
-        self.ax.set_xlabel('Долгота, °E', labelpad=20)
-        self.ax.set_ylabel('Широта, °N', labelpad=30)
+        clb.ax.set_title(name)
+        self.ax.set_xlabel('Долгота, E', labelpad=15)
+        self.ax.set_ylabel('Широта, N', labelpad=20)
         coord = m(long[clon], lat[clat])
         self.ax.plot(coord[0], coord[1], color=crclCol[0], marker='*', markersize=float(crclSize[:-2]) * 10)
         self.ax.grid(color='w', linewidth=0.1)
@@ -144,6 +159,9 @@ class mapLevLat(FigureCanvas):
     def __init__(self, parent, level, lat, matrix, date, coltop, colMap, colbot, levMin, levMax, latMin,
                  latMax, lines_drawn, lat_epic):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
@@ -163,8 +181,8 @@ class mapLevLat(FigureCanvas):
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(lat[latMin], lat[latMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
-        clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
-        self.ax.set(xlabel='Широта, °N', ylabel='Высота,км')
+        clb.ax.set_title(r'$\delta$' + 'T', fontsize=8)
+        self.ax.set(xlabel='Широта, N', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
     def save2(self, name, dpi, docFormat):
@@ -178,6 +196,9 @@ class mapLevLon(FigureCanvas):
     def __init__(self, parent, lev, long, matrix, date, coltop, colMap, colbot, levMin, levMax, lonMin,
                  lonMax, lines_drawn, lon_epic):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.155, bottom=0.165, right=0.990, top=0.915)
         super().__init__(self.fig)
@@ -198,7 +219,7 @@ class mapLevLon(FigureCanvas):
         self.ax.set_xlim(long[lonMin], long[lonMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
         clb.ax.set_title(r'$\delta$' + 'T', fontsize=10)
-        self.ax.set(xlabel='Долгота, °E', ylabel='Высота,км')
+        self.ax.set(xlabel='Долгота, E', ylabel='Высота,км')
         self.ax.grid(linewidth=0.1)
 
     def save3(self, name, dpi, docFormat):
@@ -212,6 +233,9 @@ class plotLatLevDT(FigureCanvas):
     def __init__(self, parent, dtLat, dates, lat, colMap, name, epic_date, epic_lat, lines_drawn,
                  lat_min, lat_max):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.140, bottom=0.245, right=1, top=0.915)
         super().__init__(self.fig)
@@ -240,6 +264,9 @@ class plotLatLevDTc(FigureCanvas):
     def __init__(self, parent, dtLatc, dates, lat, colMap, name, epic_date, epic_lat, lines_drawn,
                  lat_min, lat_max):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.140, bottom=0.245, right=0.960, top=0.915)
         super().__init__(self.fig)
@@ -268,6 +295,9 @@ class plotLonLevDT(FigureCanvas):
     def __init__(self, parent, dtLon, dates, lon, colMap, name, epic_date, epic_lon, lines_drawn,
                  lon_min, lon_max):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.140, bottom=0.245, right=1, top=0.915)
         super().__init__(self.fig)
@@ -296,6 +326,9 @@ class plotLonLevDTc(FigureCanvas):
     def __init__(self, parent, dtLonc, dates, lon, colMap, name, epic_date, epic_lon, lines_drawn,
                  lon_min, lon_max):
         plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
         self.fig, self.ax = plt.subplots(constrained_layout=False)
         plt.subplots_adjust(left=0.140, bottom=0.245, right=0.960, top=0.915)
         super().__init__(self.fig)
@@ -329,6 +362,8 @@ class App(QMainWindow):
         self.level = []
         self.longtitude = []
         self.latitude = []
+
+        # self.pdf_map_lev_lon = PdfPages('C:/Users/User/Documents/FiguresEh.pdf')
 
     def initUI(self):
         QToolTip.setFont(QFont('SansSerif', 10))
@@ -393,6 +428,11 @@ class App(QMainWindow):
         self.labSTA = QLabel('STA', self)
         self.labSTA.resize(70, 20)
         self.labSTA.move(250, 90)
+        self.lab3hour = QLabel('Дневная', self)
+        self.lab3hour.resize(100, 20)
+        self.lab3hour.move(250, 150)
+        self.is3hour = QCheckBox(self)
+        self.is3hour.move(250, 170)
 
         ########### СВОЙСТВА  ОКОН ДЛЯ ТЕКСТА ##############
         self.textLTA = QLineEdit(self)
@@ -918,7 +958,7 @@ class App(QMainWindow):
         self.boxLatMax3 = QComboBox(self)
         self.tabLimits.layout.addWidget(self.boxLatMax3, 11, 3, 1, 1)
 
-        ################### Вкладка: Данны #############################
+        ################### Вкладка: Данные #############################
         self.label_tab_data = QLabel('Данные:', self)
         self.tabData.layout.addWidget(self.label_tab_data, 0, 0, 1, 1)
         self.box_data_type = QComboBox(self)
@@ -940,6 +980,14 @@ class App(QMainWindow):
         self.tabData.layout.addWidget(self.btn_save_data, 1, 3, 1, 1)
         self.btn_save_data.clicked.connect(self.save_data)
 
+        self.box_date1 = QComboBox(self)
+        self.tabData.layout.addWidget(self.box_date1, 2, 0, 1, 2)
+        self.box_date2 = QComboBox(self)
+        self.tabData.layout.addWidget(self.box_date2, 2, 2, 1, 2)
+        self.btnPdfMaker = QPushButton('Сохранить PDF', self)
+        self.tabData.layout.addWidget(self.btnPdfMaker, 3, 0, 1, 2)
+        # self.btnPdfMaker.clicked.connect(self.pdf_maker)
+
         self.filedialog = QFileDialog()
         self.setGeometry(0, 0, 1300, 700)
         self.setWindowTitle('Algorithm')
@@ -955,16 +1003,16 @@ class App(QMainWindow):
                  self.boxLonMin2,
                  self.boxDates, self.boxDates2, self.boxDates3, self.boxDatesMaxPlot2, self.boxDatesMaxPlot1,
                  self.boxDatesMinPlot2, self.boxDatesMinPlot1,
-                 self.boxcrcDate]
+                 self.boxcrcDate, self.box_date2, self.box_date1]
         for box in boxes:
             box.clear()
         self.level, self.latitude, self.longtitude, self.dates, self.tempArray = [], [], [], [], []
-        import netCDF4 as nc
+        from netCDF4 import Dataset
         a = self.filedialog.getOpenFileNames()[:-1]
         for i in a:
             for j in i:
                 if j[-2:] == 'c4' or j[-2:] == 'nc':
-                    ds = nc.Dataset(j)
+                    ds = Dataset(j)
                     temp = ds['T'][:]
                     if i.index(j) == 0:
                         self.level = list(ds['lev'][:])
@@ -973,7 +1021,7 @@ class App(QMainWindow):
                         dates = list(ds['time'][:])
                     for m, k in enumerate(dates):
                         a = j.split('.')[2]
-                        for boxdates in boxes[-8:]:
+                        for boxdates in boxes[-10:]:
                             boxdates.addItem(a + '-' + str(int(k // 60)) + ':00:00')
                         self.dates.append(a + '-' + str(int(k // 60)) + ':00:00')
                         self.tempArray.append(temp[m][:][:][:])
@@ -992,7 +1040,7 @@ class App(QMainWindow):
         self.boxDates2.setCurrentIndex(0)
         boxes2 = [self.boxLatMax1, self.boxLatMax2, self.boxLonMax1, self.boxLonMax2, self.boxLevMax1,
                   self.boxLevMax2, self.boxDates3, self.boxDatesMaxPlot1, self.boxDatesMaxPlot2,
-                  self.boxLatMax3, self.boxLonMax3]
+                  self.boxLatMax3, self.boxLonMax3, self.box_date2]
         self.boxDatesMinPlot2.setCurrentIndex(int(self.textLTA.text()))
         for box in boxes2:
             box.setCurrentIndex(box.count() - 1)
@@ -1000,18 +1048,70 @@ class App(QMainWindow):
         self.boxLevel1.setCurrentIndex(self.boxLevel1.count() - 6)
         self.boxLevel2.setCurrentIndex(self.boxLevel2.count() - 2)
 
+    # def pdf_maker(self):
+    #     QApplication.processEvents()
+    #     start = time.time()
+    #     index1 = self.box_date1.currentIndex()
+    #     index2 = self.box_date2.currentIndex()
+    #     lta = int(self.textLTA.text())
+    #     sta = int(self.textSTA.text())
+    #     lev = float(self.boxLevel1.currentText())
+    #     lev2 = float(self.boxLevel2.currentText())
+    #     pdf_map_lat_lon = PdfPages('C:/Users/User/Documents/FiguresNE.pdf')
+    #     if lta > index1:
+    #         return None
+    #     for date in range(index1, index2+1):
+    #         temp_matrix_c = []
+    #         temp_matrix = []
+    #         for i, lat in enumerate(self.latitude):
+    #             row = []
+    #             row2 = []
+    #             for j, lon in enumerate(self.longtitude):
+    #                 temp1LTA = []
+    #                 temp2LTA = []
+    #                 for k in self.tempArray[:date + 1][-lta:]:
+    #                     temp1LTA.append(k[self.level.index(lev)][i][j])
+    #                     temp2LTA.append(k[self.level.index(lev2)][i][j])
+    #                 temp1STA = temp1LTA[-sta:]
+    #                 temp2STA = temp2LTA[-sta:]
+    #                 lS1 = np.std(temp1STA) / np.std(temp1LTA)
+    #                 lS2 = np.std(temp2STA) / np.std(temp2LTA)
+    #                 r = np.corrcoef(temp1STA, temp2STA)[0][1]
+    #                 if r < 0:
+    #                     result = (lS1 * lS2) * np.abs(r)
+    #                 else:
+    #                     result = 0
+    #                 result2 = lS1 * lS2
+    #                 row2.append(result2)
+    #                 row.append(result)
+    #             temp_matrix_c.append(row)
+    #             temp_matrix.append(row2)
+    #         latMin = self.boxLatMin1.currentIndex()
+    #         latMax = self.boxLatMax1.currentIndex()
+    #         lonMin = self.boxLonMin1.currentIndex()
+    #         lonMax = self.boxLonMax1.currentIndex()
+    #         crclCol = self.boxCrclColor.currentText()
+    #         crclSize = self.textCrclSize.text().replace(',', '.')
+    #         colMap = self.cmapBox.currentText()
+    #         colTop = float(self.top1.text().replace(',', '.'))
+    #         colBot = float(self.bot1.text().replace(',', '.'))
+    #         clat = self.latitude.index(float(self.crcLat.currentText()))
+    #         clon = self.longtitude.index(float(self.crcLon.currentText()))
+    #         self.temp_chart1 = mapLonLat(self, self.longtitude,
+    #                                 self.latitude, temp_matrix_c, self.dates[date], colTop, r'$\delta$' + 'Tc', clat, clon,
+    #                                 colMap,
+    #                                 colBot, crclCol,
+    #                                 crclSize, latMin, latMax, lonMin, lonMax)
+    #         pdf_map_lat_lon.savefig(self.temp_chart1.get_figure())
+    #         print(time.time()-start)
+    #     pdf_map_lat_lon.close()
+    #     pass
+
     def exit(self):
-        from matplotlib.backends.backend_pdf import PdfPages
-        pdf = PdfPages('adilet.pdf')
-        figures = [self.chart4.get_figure(), self.chart11.get_figure(), self.chart5.get_figure(),
-                   self.chart6.get_figure()]
-        for figure in figures:
-            pdf.savefig(figure)
-        pdf.close()
+        exit()
 
     @pyqtSlot()
     def dateMap(self):
-        QApplication.processEvents()
         lev = float(self.boxLevel1.currentText())
         lev2 = float(self.boxLevel2.currentText())
         date = self.boxDates.currentText()
@@ -1040,8 +1140,6 @@ class App(QMainWindow):
                     result = (lS1 * lS2) * np.abs(r)
                 else:
                     result = 0
-
-                name = r'$\delta$' + 'T'
                 result2 = lS1 * lS2
                 row2.append(result2)
                 row.append(result)
@@ -1082,7 +1180,6 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def dateMap2(self):
-        QApplication.processEvents()
         date = self.boxDates.currentText()
         lattit = float(self.boxLon2.currentText())
         lta = int(self.textLTA.text())
@@ -1090,6 +1187,7 @@ class App(QMainWindow):
 
         if lta > self.dates.index(date):
             return None
+
         self.lev_lat_matrix = []
         for i, lev in enumerate(self.level):
             row = []
@@ -1122,7 +1220,6 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def dateMap3(self):
-        QApplication.processEvents()
         date = self.boxDates.currentText()
         long = float(self.boxLat2.currentText())
         lta = int(self.textLTA.text())
@@ -1228,7 +1325,7 @@ class App(QMainWindow):
         self.integArray = []
         self.integArraywR = []
 
-        for i in range(lta, len(self.tempLevOneCoorTwo), 1):
+        for i in range(lta, len(self.tempLevOneCoorTwo)):
             index1 = i - lta
             index2 = i + 1
             lTA = np.std(self.tempLevOneCoorTwo[index1:index2])
@@ -1274,11 +1371,6 @@ class App(QMainWindow):
         else:
             dateMin2 = 0
         dateMax2 = self.boxDatesMaxPlot2.currentIndex() - start
-        # if self.boxDatesMinPlot3.currentIndex() > lta:
-        #     dateMin3 = self.boxDatesMinPlot3.currentIndex() - lta
-        # else:
-        #     dateMin3 = 0
-        # dateMax3 = self.boxDatesMaxPlot3.currentIndex() - start
         self.chart2 = plotdeltaT(
             self, self.dates[lta:], self.arrayLev1, self.arrayLev2, dateTicks, dateLabels, clr1, clr2, width1, width2,
             form1,
