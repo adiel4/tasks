@@ -13,6 +13,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from mpl_toolkits.basemap import Basemap
 from scipy.signal import find_peaks
 from matplotlib.backends.backend_pdf import PdfPages
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 class plotTemp(FigureCanvas):
@@ -140,7 +141,9 @@ class mapLonLat(FigureCanvas):
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
         ac = m.contourf(x, y, matrix, self.levels, cmap=colMap)
         self.ax.set_title(date)
-        clb = self.fig.colorbar(ac, orientation='vertical')
+        divider = make_axes_locatable(self.ax)
+        cax = divider.append_axes("right", size="5%", pad=0.15)
+        clb = self.fig.colorbar(ac, orientation='vertical', cax=cax)
         clb.ax.set_title(name)
         self.ax.set_xlabel('Долгота, E', labelpad=15)
         self.ax.set_ylabel('Широта, N', labelpad=20)
@@ -428,7 +431,7 @@ class App(QMainWindow):
         self.labSTA = QLabel('STA', self)
         self.labSTA.resize(70, 20)
         self.labSTA.move(250, 90)
-        self.lab3hour = QLabel('Дневная', self)
+        self.lab3hour = QLabel('Усреднение', self)
         self.lab3hour.resize(100, 20)
         self.lab3hour.move(250, 150)
         self.is3hour = QCheckBox(self)
@@ -1158,6 +1161,27 @@ class App(QMainWindow):
         clat = self.latitude.index(float(self.crcLat.currentText()))
         clon = self.longtitude.index(float(self.crcLon.currentText()))
 
+        if self.is3hour.isChecked():
+            for i in range(len(self.latitude) - 1):
+                for j in range(len(self.longtitude) - 1):
+                    if i in [0, self.boxLat1.count()] or j in [0, self.boxLon1.count()]:
+                        continue
+                    else:
+                        self.temp_matrix_c[i][j] = np.mean([
+                            self.temp_matrix_c[i - 1][j - 1], self.temp_matrix_c[i - 1][j],
+                            self.temp_matrix_c[i - 1][j + 1],
+                            self.temp_matrix_c[i][j - 1], self.temp_matrix_c[i][j], self.temp_matrix_c[i][j],
+                            self.temp_matrix_c[i + 1][j - 1], self.temp_matrix_c[i + 1][j],
+                            self.temp_matrix_c[i + 1][j + 1]
+                        ])
+                        self.temp_matrix[i][j] = np.mean([
+                            self.temp_matrix[i - 1][j - 1], self.temp_matrix[i - 1][j],
+                            self.temp_matrix[i - 1][j + 1],
+                            self.temp_matrix[i][j - 1], self.temp_matrix[i][j], self.temp_matrix[i][j],
+                            self.temp_matrix[i + 1][j - 1], self.temp_matrix[i + 1][j],
+                            self.temp_matrix[i + 1][j + 1]
+                        ])
+
         self.chart4 = mapLonLat(self, self.longtitude,
                                 self.latitude, self.temp_matrix_c, date, colTop, r'$\delta$' + 'Tc', clat, clon,
                                 self.colMap,
@@ -1200,6 +1224,20 @@ class App(QMainWindow):
                 row.append(lS)
             self.lev_lat_matrix.append(row)
 
+        if self.is3hour.isChecked():
+            for i in range(len(self.level) - 1):
+                for j in range(len(self.latitude) - 1):
+                    if i in [0, self.boxLevel2.count()] or j in [0, self.boxLat1.count()]:
+                        continue
+                    else:
+                        self.lev_lat_matrix[i][j] = np.mean([
+                            self.lev_lat_matrix[i - 1][j - 1], self.lev_lat_matrix[i - 1][j],
+                            self.lev_lat_matrix[i - 1][j + 1],
+                            self.lev_lat_matrix[i][j - 1], self.lev_lat_matrix[i][j], self.lev_lat_matrix[i][j + 1],
+                            self.lev_lat_matrix[i + 1][j - 1], self.lev_lat_matrix[i + 1][j],
+                            self.lev_lat_matrix[i + 1][j + 1]
+                        ])
+
         levMin = self.boxLevMin1.currentIndex()
         levMax = self.boxLevMax1.currentIndex()
         latMin = self.boxLatMin2.currentIndex()
@@ -1239,6 +1277,20 @@ class App(QMainWindow):
                 row.append(lS)
             self.lev_lon_matrix.append(row)
 
+        if self.is3hour.isChecked():
+            for i in range(len(self.level) - 1):
+                for j in range(len(self.longtitude) - 1):
+                    if i in [0, self.boxLevel2.count()] or j in [0, self.boxLon1.count()]:
+                        continue
+                    else:
+                        self.lev_lon_matrix[i][j] = np.mean([
+                            self.lev_lon_matrix[i - 1][j - 1], self.lev_lon_matrix[i - 1][j],
+                            self.lev_lon_matrix[i - 1][j + 1],
+                            self.lev_lon_matrix[i][j - 1], self.lev_lon_matrix[i][j], self.lev_lon_matrix[i][j + 1],
+                            self.lev_lon_matrix[i + 1][j - 1], self.lev_lon_matrix[i + 1][j],
+                            self.lev_lon_matrix[i + 1][j + 1]
+
+                        ])
         levMin = self.boxLevMin2.currentIndex()
         levMax = self.boxLevMax2.currentIndex()
         lonMin = self.boxLonMin2.currentIndex()
