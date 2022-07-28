@@ -7,7 +7,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QThread, QObject
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QFileDialog, QCheckBox, QGridLayout, QTabWidget, QApplication, QWidget, QLabel, \
-    QPushButton, QMainWindow, QLineEdit, QComboBox, QToolTip
+    QPushButton, QMainWindow, QLineEdit, QComboBox, QToolTip, QTableWidget, QTableWidgetItem
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.basemap import Basemap
@@ -187,9 +187,9 @@ class mapLevLat(FigureCanvas):
         x, y = [lat[lat_epic], lat[lat_epic]], [h_km[0], h_km[-1]]
         x2, y2 = [lat[lat_epic2], lat[lat_epic2]], [h_km[0], h_km[-1]]
         if lines_drawn:
-            plt.plot(x, y, 'r')
+            plt.plot(x, y, 'r', linewidth=0.5)
         if lines_drawn2:
-            plt.plot(x2, y2, 'b')
+            plt.plot(x2, y2, 'b', linewidth=0.5)
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(lat[latMin], lat[latMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
@@ -227,9 +227,9 @@ class mapLevLon(FigureCanvas):
         x, y = [long[lon_epic], long[lon_epic]], [h_km[0], h_km[-1]]
         x2, y2 = [long[lon_epic2], long[lon_epic2]], [h_km[0], h_km[-1]]
         if lines_drawn:
-            plt.plot(x, y, 'r')
+            plt.plot(x, y, 'r', linewidth=0.5)
         if lines_drawn2:
-            plt.plot(x2, y2, 'b')
+            plt.plot(x2, y2, 'b', linewidth=0.5)
         clb = self.fig.colorbar(ac, orientation='vertical')
         self.ax.set_xlim(long[lonMin], long[lonMax])
         self.ax.set_ylim(h_km[levMin], h_km[levMax])
@@ -259,13 +259,13 @@ class plotLatLevDT(FigureCanvas):
         if lines_drawn:
             x1, y1 = [-0.5, len(dates) - 0.5], [lat[epic_lat] - 0.25, lat[epic_lat] - 0.25]
             x2, y2 = [epic_date - 0.5, epic_date - 0.5], [lat[0] - 0.25, lat[-1]]
-            plt.plot(x1, y1, 'r')
-            plt.plot(x2, y2, 'r')
+            plt.plot(x1, y1, 'k', linewidth=0.8)
+            plt.plot(x2, y2, 'k', linewidth=0.8)
         if lines_drawn2:
             x3, y3 = [-0.5, len(dates) - 0.5], [lat[epic_lat2] - 0.25, lat[epic_lat2] - 0.25]
             x4, y4 = [epic_date2 - 0.5, epic_date2 - 0.5], [lat[0] - 0.25, lat[-1]]
-            plt.plot(x3, y3, 'b')
-            plt.plot(x4, y4, 'b')
+            plt.plot(x3, y3, 'w', linewidth=0.8)
+            plt.plot(x4, y4, 'w', linewidth=0.8)
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -295,13 +295,13 @@ class plotLatLevDTc(FigureCanvas):
         if lines_drawn:
             x1, y1 = [-0.5, len(dates) - 0.5], [lat[epic_lat] - 0.25, lat[epic_lat] - 0.25]
             x2, y2 = [epic_date - 0.5, epic_date - 0.5], [lat[0] - 0.25, lat[-1]]
-            plt.plot(x1, y1, 'r')
-            plt.plot(x2, y2, 'r')
+            plt.plot(x1, y1, 'k', linewidth=0.8)
+            plt.plot(x2, y2, 'k', linewidth=0.8)
         if lines_drawn2:
             x3, y3 = [-0.5, len(dates) - 0.5], [lat[epic_lat2] - 0.25, lat[epic_lat2] - 0.25]
             x4, y4 = [epic_date2 - 0.5, epic_date2 - 0.5], [lat[0] - 0.25, lat[-1]]
-            plt.plot(x3, y3, 'b')
-            plt.plot(x4, y4, 'b')
+            plt.plot(x3, y3, 'w', linewidth=0.8)
+            plt.plot(x4, y4, 'w', linewidth=0.8)
         self.ax.set(title='Срез по широте: ' + str(name) + '$^\circ$ E')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -331,13 +331,13 @@ class plotLonLevDT(FigureCanvas):
         if lines_drawn:
             x1, y1 = [-0.5, len(dates) - 0.5], [lon[epic_lon] - 0.6875, lon[epic_lon] - 0.6875]
             x2, y2 = [epic_date - 0.5, epic_date - 0.5], [lon[0], lon[-1] + 0.3125]
-            plt.plot(x1, y1, 'r')
-            plt.plot(x2, y2, 'r')
+            plt.plot(x1, y1, 'k', linewidth=0.8)
+            plt.plot(x2, y2, 'k', linewidth=0.8)
         if lines_drawn2:
             x3, y3 = [-0.5, len(dates) - 0.5], [lon[epic_lon2] - 0.6875, lon[epic_lon2] - 0.6875]
             x4, y4 = [epic_date2 - 0.5, epic_date2 - 0.5], [lon[0], lon[-1] + 0.3125]
-            plt.plot(x3, y3, 'b')
-            plt.plot(x4, y4, 'b')
+            plt.plot(x3, y3, 'w', linewidth=0.8)
+            plt.plot(x4, y4, 'w', linewidth=0.8)
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -367,13 +367,13 @@ class plotLonLevDTc(FigureCanvas):
         if lines_drawn:
             x1, y1 = [-0.5, len(dates) - 0.5], [lon[epic_lon] - 0.6875, lon[epic_lon] - 0.6875]
             x2, y2 = [epic_date - 0.5, epic_date - 0.5], [lon[0], lon[-1] + 0.3125]
-            plt.plot(x1, y1, 'r')
-            plt.plot(x2, y2, 'r')
+            plt.plot(x1, y1, 'k', linewidth=0.8)
+            plt.plot(x2, y2, 'k', linewidth=0.8)
         if lines_drawn2:
             x3, y3 = [-0.5, len(dates) - 0.5], [lon[epic_lon2] - 0.6875, lon[epic_lon2] - 0.6875]
             x4, y4 = [epic_date2 - 0.5, epic_date2 - 0.5], [lon[0], lon[-1] + 0.3125]
-            plt.plot(x3, y3, 'b')
-            plt.plot(x4, y4, 'b')
+            plt.plot(x3, y3, 'w', linewidth=0.8)
+            plt.plot(x4, y4, 'w', linewidth=0.8)
         self.ax.set(title='Срез по долготе: ' + str(name) + '$^\circ$ N')
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
@@ -409,6 +409,7 @@ class App(QMainWindow):
         self.btnDwnld.move(40, 230)
         self.btnDwnld.resize(100, 30)
         self.btnDwnld.clicked.connect(self.download)
+        self.btnDwnld.clicked.connect(self.table_viev)
         self.btnMap = QPushButton('Карта', self)
         self.btnMap.move(150, 250)
         self.btnMap.resize(100, 20)
@@ -485,9 +486,11 @@ class App(QMainWindow):
         self.boxLat1 = QComboBox(self)
         self.boxLat1.move(150, 90)
         self.boxLat1.resize(70, 20)
+        self.boxLat1.currentIndexChanged.connect(self.lat_changed)
         self.boxLon1 = QComboBox(self)
         self.boxLon1.move(150, 120)
         self.boxLon1.resize(70, 20)
+        self.boxLon1.currentIndexChanged.connect(self.lon_changed)
         self.boxLat2 = QComboBox(self)
         self.boxLat2.move(150, 150)
         self.boxLat2.resize(70, 20)
@@ -506,8 +509,6 @@ class App(QMainWindow):
         self.tabs.move(320, 0)
 
         self.tab1 = QWidget(self)
-        self.tab2 = QWidget(self)
-        self.tab3 = QWidget(self)
         self.tab4 = QWidget(self)
         self.tab5 = QWidget(self)
         self.tab6 = QWidget(self)
@@ -517,6 +518,7 @@ class App(QMainWindow):
         self.tabs.addTab(self.tab4, "Профиль;STA/LTA")
         self.tabs.addTab(self.tab5, "Cрез(N/E)")
         self.tabs.addTab(self.tab6, 'Сохранение Графиков')
+        self.tabs.addTab(self.tab7, 'Таблица')
 
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
@@ -526,6 +528,8 @@ class App(QMainWindow):
         self.tab5.setLayout(self.tab5.layout)
         self.tab6.layout = QGridLayout(self.tab6)
         self.tab6.setLayout(self.tab6.layout)
+        self.tab7.layout = QGridLayout(self.tab7)
+        self.tab7.setLayout(self.tab7.layout)
 
         self.tab5.layout.setRowStretch(0, 1)
         self.tab5.layout.setRowStretch(1, 4)
@@ -709,6 +713,11 @@ class App(QMainWindow):
         for form in imgFormats:
             for box in box_formats:
                 box.addItem(form)
+
+        ########### Вкладка: Таблица #################
+
+        self.table = QTableWidget(self)
+        self.tab7.layout.addWidget(self.table, 0, 0)
 
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
@@ -1103,6 +1112,28 @@ class App(QMainWindow):
         self.boxLevel2.setCurrentIndex(self.boxLevel2.count() - 2)
 
     @pyqtSlot()
+    def table_viev(self):
+        self.table.setColumnCount(len(self.level))
+        self.table.setRowCount(len(self.dates))
+        self.table.setHorizontalHeaderLabels([str(i) for i in self.level])
+        self.table.setVerticalHeaderLabels(self.dates)
+    @pyqtSlot()
+    def lat_changed(self):
+        lat = self.boxLat1.currentIndex()
+        lon = self.boxLon1.currentIndex()
+        for i in range(len(self.dates)):
+            for j in range(len(self.level)):
+                self.table.setItem(i, j, QTableWidgetItem(str(round(self.tempArray[i][j][lat][lon], 2))))
+
+    @pyqtSlot()
+    def lon_changed(self):
+        lat = self.boxLat1.currentIndex()
+        lon = self.boxLon1.currentIndex()
+        for i in range(len(self.dates)):
+            for j in range(len(self.level)):
+                self.table.setItem(i, j, QTableWidgetItem(str(round(self.tempArray[i][j][lat][lon], 2))))
+
+    @pyqtSlot()
     def dateMap(self):
         lev = float(self.boxLevel1.currentText())
         lev2 = float(self.boxLevel2.currentText())
@@ -1317,6 +1348,7 @@ class App(QMainWindow):
         self.toolbar.setOrientation(Qt.Horizontal)
         self.tab1.layout.addWidget(self.toolbar, 3, 0)
 
+    @pyqtSlot()
     def save_pdf(self):
         from matplotlib.backends.backend_pdf import PdfPages
 
@@ -1451,6 +1483,7 @@ class App(QMainWindow):
         self.tab4.layout.addWidget(self.chart3, 2, 1, 1, 1)
         self.tab4.layout.addWidget(self.toolbar3, 3, 1, 1, 1)
 
+    @pyqtSlot()
     def latlonMap(self):
         index1, index2 = self.boxDates2.currentIndex(), self.boxDates3.currentIndex()
         lta, sta = int(self.textLTA.text()), int(self.textSTA.text())
@@ -1692,6 +1725,7 @@ class App(QMainWindow):
         except:
             return None
 
+    @pyqtSlot()
     def save_data(self):
 
         a = self.box_data_type.currentIndex()
@@ -1777,7 +1811,7 @@ class App(QMainWindow):
                 sheet1.write(i + 1, 0, self.dates[index1:index2 + 1][i])
             for i in range(len(self.latitude)):
                 sheet1.write(0, i + 1, float(self.latitude[i]))
-            for i in range(len(self.dates[index1:index2])+1):
+            for i in range(len(self.dates[index1:index2]) + 1):
                 for j in range(len(self.latitude)):
                     sheet1.write(i + 1, j + 1, round(float(self.latdTc[j][i]), 2))
             sheet2 = wb.add_sheet('SliceLatdT')
@@ -1785,7 +1819,7 @@ class App(QMainWindow):
                 sheet2.write(i + 1, 0, self.dates[index1:index2 + 1][i])
             for i in range(len(self.latitude)):
                 sheet2.write(0, i + 1, float(self.latitude[i]))
-            for i in range(len(self.dates[index1:index2])+1):
+            for i in range(len(self.dates[index1:index2]) + 1):
                 for j in range(len(self.latitude)):
                     sheet2.write(i + 1, j + 1, round(float(self.latdT[j][i]), 2))
             sheet3 = wb.add_sheet('SliceLondTc')
@@ -1793,7 +1827,7 @@ class App(QMainWindow):
                 sheet3.write(i + 1, 0, self.dates[index1:index2 + 1][i])
             for i in range(len(self.longtitude)):
                 sheet3.write(0, i + 1, float(self.longtitude[i]))
-            for i in range(len(self.dates[index1:index2])+1):
+            for i in range(len(self.dates[index1:index2]) + 1):
                 for j in range(len(self.longtitude)):
                     sheet3.write(i + 1, j + 1, round(float(self.londTc[j][i]), 2))
             sheet4 = wb.add_sheet('SliceLondT')
@@ -1801,7 +1835,7 @@ class App(QMainWindow):
                 sheet4.write(i + 1, 0, self.dates[index1:index2 + 1][i])
             for i in range(len(self.longtitude)):
                 sheet4.write(0, i + 1, float(self.longtitude[i]))
-            for i in range(len(self.dates[index1:index2])+1):
+            for i in range(len(self.dates[index1:index2]) + 1):
                 for j in range(len(self.longtitude)):
                     sheet4.write(i + 1, j + 1, round(float(self.londT[j][i]), 2))
             wb.save(directory + '/' + filename + '.xls')
