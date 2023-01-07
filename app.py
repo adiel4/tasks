@@ -1,6 +1,4 @@
 import sys
-import time
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,10 +10,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.basemap import Basemap
 from scipy.signal import find_peaks
-from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import xlwt
 from xlwt import Workbook
+import pywt
+from pylab import *
 
 
 class plotTemp(FigureCanvas):
@@ -388,6 +386,47 @@ class plotLonLevDTc(FigureCanvas):
         plt.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
 
+class wavelet_spectre_map(FigureCanvas):
+    def __init__(self, parent, yvalues, waveletname, title, xticks,xtickslabel):
+        plt.close('all')
+        font = {'weight': 'normal',
+                'size': 8}
+        matplotlib.rc('font', **font)
+        self.fig, self.ax = plt.subplots(constrained_layout=False)
+        plt.subplots_adjust(left=0.120, bottom=0.245, right=0.930, top=0.915)
+        super().__init__(self.fig)
+        self.setParent(parent)
+        scales = arange(1, 128)
+        cmap = plt.cm.jet
+        ylabel = 'Период(день)'
+        xlabel = 'Время'
+        t0 = 0
+        dt = 0.125
+        time = arange(0, len(yvalues)) * dt + t0
+        [coefficients, frequencies] = pywt.cwt(yvalues, scales, waveletname, dt)
+        power = (abs(coefficients)) ** 2
+        period = 1. / frequencies
+        levels = [2 ** -4, 2 ** -3, 2 ** -2, 2 ** -1, 2 ** 0, 2 ** 1, 2 ** 2, 2 ** 3]
+        contourlevels = np.log2(levels)
+        im = self.ax.contourf(time, np.log2(period), np.log2(power), contourlevels, extend='both', cmap=cmap)
+        self.ax.set_title(title)
+        self.ax.set_ylabel(ylabel)
+        self.ax.set_xlabel(xlabel)
+        yticks = 2 ** np.arange(np.ceil(np.log2(period.min())), np.ceil(np.log2(period.max())))
+        self.ax.set_yticks(np.log2(yticks))
+        self.ax.set_yticklabels(yticks)
+        self.ax.set_xticks(time[0:-1:50])
+        self.ax.set_xticklabels(xtickslabel)
+        self.ax.invert_yaxis()
+        ylim = self.ax.get_ylim()
+        self.ax.set_ylim(ylim[0], -1)
+
+        cbar_ax = self.fig.add_axes([0.95, 0.5, 0.03, 0.25])
+        self.fig.colorbar(im, cax=cbar_ax, orientation='vertical')
+
+        pass
+
+
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -402,9 +441,7 @@ class App(QMainWindow):
 
     def initUI(self):
         QToolTip.setFont(QFont('SansSerif', 10))
-
         ## СВОЙСТВА КНОПОК #############################
-
         self.btnDwnld = QPushButton('Загрузка', self)
         self.btnDwnld.move(40, 230)
         self.btnDwnld.resize(100, 30)
@@ -513,12 +550,14 @@ class App(QMainWindow):
         self.tab5 = QWidget(self)
         self.tab6 = QWidget(self)
         self.tab7 = QWidget(self)
+        self.tab8 = QWidget(self)
 
         self.tabs.addTab(self.tab1, "Карта(N/E)")
         self.tabs.addTab(self.tab4, "Профиль;STA/LTA")
         self.tabs.addTab(self.tab5, "Cрез(N/E)")
         self.tabs.addTab(self.tab6, 'Сохранение Графиков')
         self.tabs.addTab(self.tab7, 'Таблица')
+        self.tabs.addTab(self.tab8, 'Вейвлет')
 
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
@@ -530,12 +569,20 @@ class App(QMainWindow):
         self.tab6.setLayout(self.tab6.layout)
         self.tab7.layout = QGridLayout(self.tab7)
         self.tab7.setLayout(self.tab7.layout)
+        self.tab8.layout = QGridLayout(self.tab8)
+        self.tab8.setLayout(self.tab8.layout)
 
         self.tab5.layout.setRowStretch(0, 1)
         self.tab5.layout.setRowStretch(1, 4)
         self.tab5.layout.setRowStretch(4, 4)
         self.tab5.layout.setRowStretch(3, 1)
         self.tab5.layout.setRowStretch(6, 1)
+
+        self.tab8.layout.setRowStretch(0, 1)
+        self.tab8.layout.setRowStretch(1, 4)
+        self.tab8.layout.setRowStretch(4, 4)
+        self.tab8.layout.setRowStretch(3, 1)
+        self.tab8.layout.setRowStretch(6, 1)
 
         self.tab4.layout.setRowStretch(0, 5)
         self.tab4.layout.setRowStretch(1, 1)
@@ -718,6 +765,46 @@ class App(QMainWindow):
 
         self.table = QTableWidget(self)
         self.tab7.layout.addWidget(self.table, 0, 0)
+
+        ########### Вкладка: Вейвлет #################
+
+        self.tab8_lbl1 = QLabel('Вейвлет:', self)
+        self.tab8.layout.addWidget(self.tab8_lbl1, 0, 0)
+        self.wavelets_name = {'Комплексный гауссовы вейвлет 1': 'cgau1', 'Комплексный гауссовы вейвлет 2': 'cgau2',
+                              'Комплексный гауссовы вейвлет 3': 'cgau3', 'Комплексный гауссовы вейвлет 4': 'cgau4',
+                              'Комплексный гауссовы вейвлет 5': 'cgau5', 'Комплексный гауссовы вейвлет 6': 'cgau6',
+                              'Комплексный гауссовы вейвлет 7': 'cgau7', 'Комплексный гауссовы вейвлет 8': 'cgau8',
+                              'Гауссовы вейвлеты 1': 'gaus1', 'Гауссовы вейвлеты 2': 'gaus2',
+                              'Гауссовы вейвлеты 3': 'gaus3', 'Гауссовы вейвлеты 4': 'gaus4',
+                              'Гауссовы вейвлеты 5': 'gaus5', 'Гауссовы вейвлеты 6': 'gaus6',
+                              'Гауссовы вейвлеты 7': 'gaus7', 'Гауссовы вейвлеты 8': 'gaus8',
+                              'Мексиканская шляпа': 'mexh', 'Вейвлет Морле': 'morl', 'Вейвлет Шеннона': 'shan',
+                              'Комплексный вейвлет Морле': 'cmor'}
+        self.tab8_lbl2 = QLabel('Пропускная способность', self)
+        self.tab8.layout.addWidget(self.tab8_lbl2, 0, 2)
+        self.variable1 = QComboBox(self)
+        self.tab8.layout.addWidget(self.variable1, 0, 1)
+        for i in self.wavelets_name:
+            self.variable1.addItem(i)
+        self.variable1.adjustSize()
+        self.variable1.currentIndexChanged.connect(self.wavelets_indexes)
+
+        self.txt_prop_spos = QLineEdit(self)
+        self.txt_prop_spos.setText('1.0')
+        self.txt_prop_spos.setDisabled(True)
+        self.tab8.layout.addWidget(self.txt_prop_spos, 0, 3, 1, 1)
+
+        self.tab8_lbl3 = QLabel('Центральная частота', self)
+        self.tab8.layout.addWidget(self.tab8_lbl3, 0, 4)
+
+        self.txt_cent_freq = QLineEdit(self)
+        self.txt_cent_freq.setText('0.4')
+        self.txt_cent_freq.setDisabled(True)
+        self.tab8.layout.addWidget(self.txt_cent_freq, 0, 5, 1, 1)
+
+        self.wavelet_plot = QPushButton('График', self)
+        self.tab8.layout.addWidget(self.wavelet_plot, 0, 6)
+        self.wavelet_plot.clicked.connect(self.wavelet)
 
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
@@ -1117,6 +1204,7 @@ class App(QMainWindow):
         self.table.setRowCount(len(self.dates))
         self.table.setHorizontalHeaderLabels([str(i) for i in self.level])
         self.table.setVerticalHeaderLabels(self.dates)
+
     @pyqtSlot()
     def lat_changed(self):
         lat = self.boxLat1.currentIndex()
@@ -1392,10 +1480,12 @@ class App(QMainWindow):
                 k[self.level.index(levOne)][self.latitude.index(latOne)][self.longtitude.index(lonOne)])
             self.tempLevOneCoorTwo.append(
                 k[self.level.index(levTwo)][self.latitude.index(latOne)][self.longtitude.index(lonOne)])
-        dateTicks = self.dates[0:-1:50]
+        dateTicks = self.dates[lta:][0:-1:50]
+        self.dateTicks = self.dates[lta:][0:-1:50]
         dateLabels = []
         for i in dateTicks:
             dateLabels.append(i[6:8])
+        self.dateLabels = dateLabels
         width1 = float(self.textPlot1Line2Width.text().replace(',', '.'))
         width2 = float(self.textPlot1Line1Width.text().replace(',', '.'))
         clr1 = self.boxPlot1Line2Color.currentText()
@@ -1437,11 +1527,6 @@ class App(QMainWindow):
             else:
                 result = stalta * stalta2 * np.abs(coef)
                 self.integArraywR.append(result)
-
-        dateTicks = self.dates[lta:][0:-1:50]
-        dateLabels = []
-        for i in dateTicks:
-            dateLabels.append(i[6:8])
 
         clr1 = self.boxPlot2Line1Color.currentText()
         clr2 = self.boxPlot2Line2Color.currentText()
@@ -1839,6 +1924,49 @@ class App(QMainWindow):
                 for j in range(len(self.longtitude)):
                     sheet4.write(i + 1, j + 1, round(float(self.londT[j][i]), 2))
             wb.save(directory + '/' + filename + '.xls')
+
+    def wavelets_indexes(self):
+        if self.variable1.currentIndex() in (18, 19):
+            self.txt_prop_spos.setDisabled(False)
+            self.txt_cent_freq.setDisabled(False)
+        else:
+            self.txt_prop_spos.setDisabled(True)
+            self.txt_cent_freq.setDisabled(True)
+        pass
+
+    def wavelet(self):
+
+        wavelet = self.wavelets_name[self.variable1.currentText()]
+        if self.variable1.currentIndex() in (18, 19):
+            wavelet = wavelet + self.txt_prop_spos.text().replace(',', '.') + '-' + self.txt_cent_freq.text().replace(',', '.')
+        title = 'Вейвлет-преобразование(Спектр мощности) ' + self.boxLevel1.currentText() + ' hPa'
+        self.waveletchart1 = wavelet_spectre_map(self, self.arrayLev1, wavelet, title, self.dateTicks, self.dateLabels)
+        self.tab8.layout.addWidget(self.waveletchart1, 1, 0, 1, 3)
+        self.waveletnav1 = NavigationToolbar(self.waveletchart1, self)
+        self.waveletnav1.setOrientation(Qt.Horizontal)
+        self.tab8.layout.addWidget(self.waveletnav1, 3, 0, 1, 3)
+
+        title = 'Вейвлет-преобразование(Спектр мощности) ' + self.boxLevel2.currentText() + ' hPa'
+        self.waveletchart2 = wavelet_spectre_map(self, self.arrayLev2, wavelet, title, self.dateTicks, self.dateLabels)
+        self.tab8.layout.addWidget(self.waveletchart2, 1, 3, 1, 4)
+        self.waveletnav2 = NavigationToolbar(self.waveletchart2, self)
+        self.waveletnav2.setOrientation(Qt.Horizontal)
+        self.tab8.layout.addWidget(self.waveletnav2, 3, 3, 1, 4)
+
+        title = 'Вейвлет-преобразование(Спектр мощности) dT'
+        self.waveletchart3 = wavelet_spectre_map(self, self.integArray, wavelet, title, self.dateTicks, self.dateLabels)
+        self.tab8.layout.addWidget(self.waveletchart3, 4, 0, 1, 3)
+        self.waveletnav3 = NavigationToolbar(self.waveletchart3, self)
+        self.waveletnav3.setOrientation(Qt.Horizontal)
+        self.tab8.layout.addWidget(self.waveletnav3, 6, 0, 1, 3)
+
+        title = 'Вейвлет-преобразование(Спектр мощности) dTc'
+        self.waveletchart4 = wavelet_spectre_map(self, self.integArraywR, wavelet, title, self.dateTicks, self.dateLabels)
+        self.tab8.layout.addWidget(self.waveletchart4, 4, 3, 1, 4)
+        self.waveletnav4 = NavigationToolbar(self.waveletchart4, self)
+        self.waveletnav4.setOrientation(Qt.Horizontal)
+        self.tab8.layout.addWidget(self.waveletnav4, 6, 3, 1, 4)
+        pass
 
 
 if __name__.endswith('__main__'):
