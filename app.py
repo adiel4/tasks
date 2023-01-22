@@ -14,6 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xlwt import Workbook
 import pywt
 from pylab import *
+from scipy import signal
 
 
 class plotTemp(FigureCanvas):
@@ -405,6 +406,7 @@ class wavelet_spectre_map(FigureCanvas):
         time = arange(0, len(yvalues)) * dt + t0
         [coefficients, frequencies] = pywt.cwt(yvalues, scales, waveletname, dt)
         power = (abs(coefficients)) ** 2
+        self.power = np.log2(power)
         period = 1. / frequencies
         levels = [2 ** -4, 2 ** -3, 2 ** -2, 2 ** -1, 2 ** 0, 2 ** 1, 2 ** 2, 2 ** 3]
         contourlevels = np.log2(levels)
@@ -1966,7 +1968,16 @@ class App(QMainWindow):
         self.waveletnav4 = NavigationToolbar(self.waveletchart4, self)
         self.waveletnav4.setOrientation(Qt.Horizontal)
         self.tab8.layout.addWidget(self.waveletnav4, 6, 3, 1, 4)
-        pass
+        coh_matrix = []
+        fs = 1
+        for i in range(len(self.waveletchart1.power)):
+            f, Cxy = signal.coherence(self.waveletchart1.power[i], self.waveletchart2.power[i], fs)
+            coh_matrix.append(Cxy)
+        plt.close('all')
+        print(coh_matrix)
+        plt.contourf(coh_matrix)
+        plt.colorbar()
+        plt.show()
 
 
 if __name__.endswith('__main__'):
