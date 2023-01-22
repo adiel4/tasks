@@ -1,1 +1,4 @@
-[cars_json[i]['name'].lower().replace('_', ' ') for i in range(len(cars_json))]
+import requests
+
+a = requests.get('https://www.ilcats.ru/?vin=JMBLYV97W7J005586&VinAction=Search')
+print(a)
