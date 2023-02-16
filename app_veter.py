@@ -709,15 +709,24 @@ class App(QMainWindow):
         lat_one = float(self.boxLat1.currentText())
         lon_one = float(self.boxLon1.currentText())
 
-        self.wind_lev_one_coor_one = []
-        self.wind_lev_one_coor_two = []
+        self.wind_lev_one = []
+        self.wind_lev_two = []
+        self.angle_lev_one = []
+        self.angle_lev_two = []
 
         for k in self.wind_magn_array:
-            self.wind_lev_one_coor_one.append(
+            self.wind_lev_one.append(
                 k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]   
             )
-            self.wind_lev_one_coor_two.append(
+            self.wind_lev_two.append(
                 k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]
+            )
+        for j in self.wind_angle_array:
+            self.angle_lev_one.append(
+                j[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]   
+            )
+            self.angle_lev_two.append(
+                j[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]
             )
 
 
@@ -738,12 +747,18 @@ class App(QMainWindow):
         date_min1 = self.boxDatesMinPlot1.currentIndex()
         date_max1 = self.boxDatesMaxPlot1.currentIndex()
 
-        self.chart = plotTemp(self, self.dates, self.wind_lev_one_coor_one, self.wind_lev_one_coor_two, date_ticks, date_labels,
+        self.chart = plotTemp(self, self.dates, self.wind_lev_one, self.wind_lev_two, date_ticks, date_labels,
                             clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1)
-        self.tab4.layout.addWidget(self.chart, 2, 0, 1, 2)
+        self.tab4.layout.addWidget(self.chart, 2, 1, 1, 1)
         self.toolbar = NavigationToolbar(self.chart, self)
         self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab4.layout.addWidget(self.toolbar, 3, 0, 1, 2) 
+        self.tab4.layout.addWidget(self.toolbar, 3, 1, 1, 1) 
+        self.chart = plotTemp(self, self.dates, self.angle_lev_one, self.angle_lev_two, date_ticks, date_labels,
+                            clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1)
+        self.tab4.layout.addWidget(self.chart, 2, 0, 1, 1)
+        self.toolbar = NavigationToolbar(self.chart, self)
+        self.toolbar.setOrientation(Qt.Horizontal)
+        self.tab4.layout.addWidget(self.toolbar, 3, 0, 1, 1) 
     
     @pyqtSlot()
     def date_map(self):
