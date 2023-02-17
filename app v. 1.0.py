@@ -1,5 +1,4 @@
 import logging
-import vininfo as vi
 import requests
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types

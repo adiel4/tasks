@@ -15,7 +15,7 @@ from netCDF4 import Dataset
 
 class Slice_Matrix(FigureCanvas):
 
-    def __init__(self, parent, matrix, dates, y_values, col_map, name, y_val_min, y_val_max,name_clb):
+    def __init__(self, parent, matrix, dates, y_values, col_map, name, y_val_min, y_val_max, name_clb):
         plt.close('all')
         font = {'weight': 'normal',
                 'size': 6}
@@ -25,20 +25,21 @@ class Slice_Matrix(FigureCanvas):
         plt.close('all')
         super().__init__(self.fig)
         self.setParent(parent)
-        ac = self.ax.pcolormesh(dates,y_values,matrix,cmap=col_map)
-        self.ax.set(title= name)
+        ac = self.ax.pcolormesh(dates, y_values, matrix, cmap=col_map)
+        self.ax.set(title=name)
         self.ax.autoscale(True)
         self.ax.set_xticks(dates[0:-1:16])
         self.ax.set_xticklabels(xlabel[6:8] for xlabel in dates[0:-1:16])
-        clb = self.fig.colorbar(ac,orientation = 'vertical')
+        clb = self.fig.colorbar(ac, orientation='vertical')
         clb.ax.set_title(name_clb)
         self.ax.set_ylim(y_values[y_val_min] - 0.25, y_values[y_val_max] + 0.25)
-        self.ax.set(xlabel='Дата',ylabel = '')
-        self.ax.grid(color='w',linewidth=0.1)
+        self.ax.set(xlabel='Дата', ylabel='')
+        self.ax.grid(color='w', linewidth=0.1)
 
 
 class Wind_Mag_Ang_Map(FigureCanvas):
-    def __init__(self, parent, long, lat,wind_x,wind_y,magn, date, coltop, name, clat, clon, colMap, colBot, crclCol, crclSize,
+    def __init__(self, parent, long, lat, wind_x, wind_y, magn, date, coltop, name, clat, clon, colMap, colBot, crclCol,
+                 crclSize,
                  latMinInd, latMaxInd, lonMinInd, lonMaxInd, clat2, clon2, crclCol2, crclSize2, lin_dr):
         plt.close('all')
         font = {'weight': 'normal',
@@ -59,8 +60,8 @@ class Wind_Mag_Ang_Map(FigureCanvas):
         highColor = round(coltop / 0.2)
         lowColor = round(colBot / 0.2)
         self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
-        ac = m.contourf(x,y,magn, self.levels,cmap=colMap)
-        am = m.quiver(x,y,wind_x,wind_y)
+        ac = m.contourf(x, y, magn, self.levels, cmap=colMap)
+        am = m.quiver(x, y, wind_x, wind_y)
         self.ax.set_title(date)
         divider = make_axes_locatable(self.ax)
         cax = divider.append_axes("right", size="5%", pad=0.15)
@@ -71,10 +72,9 @@ class Wind_Mag_Ang_Map(FigureCanvas):
         coord = m(long[clon], lat[clat])
 
 
-
 class plotTemp(FigureCanvas):
     def __init__(self, parent, dates, lineOne, lineTwo, dateTicks, dateLabels, clr1, clr2, w1, w2, name1, name2, latOne,
-                 lonOne, dateMin, dateMax):
+                 lonOne, dateMin, dateMax, plt_xlabel, plt_ylabel, plt_title):
         plt.close('all')
         font = {'weight': 'normal',
                 'size': 8}
@@ -85,15 +85,17 @@ class plotTemp(FigureCanvas):
         self.l_1, = self.ax.plot(dates, lineOne, clr2[0] + '-', linewidth=w2)
         self.l_2, = self.ax.plot(dates, lineTwo, clr1[0] + '-', linewidth=w1)
         self.ax.legend([name1 + ' hPa', name2 + ' hPa'], loc='best')
-        self.ax.set(xlabel='Дата', ylabel='Скорость, м/c',
-                    title='Скорость (' + str(lonOne) + '$^\circ$N  ' + str(latOne) + '$^\circ$E)')
+        self.ax.set(xlabel=plt_xlabel, ylabel=plt_ylabel,
+                    title=plt_title)
         self.ax.set_xticks(dateTicks)
         self.ax.set_xticklabels(dateLabels)
         self.ax.grid()
         self.ax.set_xlim(dates[dateMin], dates[dateMax])
         self.dates = dates
+
     def col(self, clr):
         self.ax.get_lines()[0].set_color(clr[0])
+
     def save4(self, name, dpi, docFormat):
         self.fig.savefig(name + docFormat, dpi=dpi, bbox_inches='tight')
 
@@ -111,7 +113,6 @@ class App(QMainWindow):
         self.longtitude = []
         self.latitude = []
 
-
     def initUI(self):
         QToolTip.setFont(QFont('SansSerif', 10))
         ## СВОЙСТВА КНОПОК #############################
@@ -126,8 +127,8 @@ class App(QMainWindow):
         self.btnMap.move(150, 250)
         self.btnMap.resize(100, 20)
         self.btnMap.clicked.connect(self.date_map)
-        #self.btnMap.clicked.connect(self.dateMap2)
-        #self.btnMap.clicked.connect(self.dateMap3)
+        # self.btnMap.clicked.connect(self.dateMap2)
+        # self.btnMap.clicked.connect(self.dateMap3)
         self.btnGraph = QPushButton('График', self)
         self.btnGraph.move(40, 270)
         self.btnGraph.resize(60, 30)
@@ -137,15 +138,15 @@ class App(QMainWindow):
         self.btnPrevMap.resize(30, 30)
         self.btnPrevMap.clicked.connect(self.prev_map)
         self.btnPrevMap.clicked.connect(self.date_map)
-        #self.btnPrevMap.clicked.connect(self.dateMap2)
-        #self.btnPrevMap.clicked.connect(self.dateMap3)
+        # self.btnPrevMap.clicked.connect(self.dateMap2)
+        # self.btnPrevMap.clicked.connect(self.dateMap3)
         self.btnNextMap = QPushButton('>', self)
         self.btnNextMap.move(180, 270)
         self.btnNextMap.resize(30, 30)
         self.btnNextMap.clicked.connect(self.next_map)
         self.btnNextMap.clicked.connect(self.date_map)
-        #self.btnNextMap.clicked.connect(self.dateMap2)
-        #self.btnNextMap.clicked.connect(self.dateMap3)
+        # self.btnNextMap.clicked.connect(self.dateMap2)
+        # self.btnNextMap.clicked.connect(self.dateMap3)
 
         #### СВОЙСТВА ТЕКСТОВ ####################
         self.labVys1 = QLabel('Высота(1), ГПа', self)
@@ -223,15 +224,13 @@ class App(QMainWindow):
         self.tab7 = QWidget(self)
         self.tab8 = QWidget(self)
 
-
         self.tabs.addTab(self.tab1, "Карта(N/E)")
-        self.tabs.addTab(self.tab2,'Карта(N/E)')
+        self.tabs.addTab(self.tab2, 'Карта(N/E)')
         self.tabs.addTab(self.tab4, "Скорость")
         self.tabs.addTab(self.tab5, "Cрез_скорость")
-        self.tabs.addTab(self.tab6,'Cрез_угол')
+        self.tabs.addTab(self.tab6, 'Cрез_угол')
         self.tabs.addTab(self.tab7, 'Таблица(скорость)')
-        self.tabs.addTab(self.tab8,'Таблица(угол)')
-
+        self.tabs.addTab(self.tab8, 'Таблица(угол)')
 
         self.tab1.layout = QGridLayout(self.tab1)
         self.tab1.setLayout(self.tab1.layout)
@@ -260,12 +259,6 @@ class App(QMainWindow):
         self.tab6.layout.setRowStretch(3, 1)
         self.tab6.layout.setRowStretch(6, 1)
 
-        self.tab4.layout.setRowStretch(0, 5)
-        self.tab4.layout.setRowStretch(1, 1)
-        self.tab4.layout.setRowStretch(2, 5)
-        self.tab4.layout.setRowStretch(3, 1)
-        self.tab4.layout.setColumnStretch(0, 5)
-        self.tab4.layout.setColumnStretch(1, 5)
 
         ########### ВКЛАДКА: Срез() #################
 
@@ -291,7 +284,6 @@ class App(QMainWindow):
         self.cmapBox2 = QComboBox(self)
         self.tab5.layout.addWidget(self.cmapBox2, 0, 15, 1, 2)
 
-
         ########### Вкладка: Таблица скорости ветра #################
 
         self.table = QTableWidget(self)
@@ -302,7 +294,6 @@ class App(QMainWindow):
         self.table2 = QTableWidget(self)
         self.tab8.layout.addWidget(self.table2, 0, 0)
 
-
         ######## ОСНОВНЫЕ СВОЙСТВА ВКЛАДОК НАСТРОЙКИ ################
 
         self.tabsOptions = QTabWidget(self)
@@ -310,7 +301,7 @@ class App(QMainWindow):
         self.tabsOptions.resize(300, 400)
 
         self.tab_line_options = QTabWidget(self)
-        self.tab4.layout.addWidget(self.tab_line_options, 0, 1, 1, 1)
+        self.tab4.layout.addWidget(self.tab_line_options, 0, 1, 2, 1)
 
         self.tab_line_properties = QWidget(self)
         self.tab_line_markers = QWidget(self)
@@ -597,13 +588,11 @@ class App(QMainWindow):
         self.boxLatMax3 = QComboBox(self)
         self.tabLimits.layout.addWidget(self.boxLatMax3, 11, 3, 1, 1)
 
-
-
         self.filedialog = QFileDialog()
         self.setGeometry(0, 0, 1300, 700)
         self.setWindowTitle('Algorithm')
         self.show()
-        np.seterr(divide = 'ignore')
+        np.seterr(divide='ignore')
 
     @pyqtSlot()
     def download(self):
@@ -619,27 +608,29 @@ class App(QMainWindow):
         for box in boxes:
             box.clear()
         self.level, self.latitude, self.longtitude, self.dates, self.wind_array = [], [], [], [], []
-        
+
         files_list = self.filedialog.getOpenFileNames()[:-1][0]
         for file in files_list:
             if file[-2:] == 'c4' or file[-2:] == 'nc':
                 ds = Dataset(file)
-                east_wind_prof = ds['U'][:] #x_values
-                north_wind_prof = ds['V'][:] #y_values
+                east_wind_prof = ds['U'][:]  # x_values
+                north_wind_prof = ds['V'][:]  # y_values
                 if files_list.index(file) == 0:
                     self.level = tuple(ds['lev'][:])
                     self.latitude = tuple(ds['lat'][:])
                     self.longtitude = tuple(ds['lon'][:])
                     dates = tuple(ds['time'][:])
-                for ind_1,ind_2 in enumerate(dates):
+                for ind_1, ind_2 in enumerate(dates):
                     date_str = file.split('/')[-1].split('.')[2]
                     for boxdates in boxes[-9:]:
                         boxdates.addItem(date_str + '-' + str(int(ind_2 // 60)) + ':00:00')
                     self.dates.append(date_str + '-' + str(int(ind_2 // 60)) + ':00:00')
                     self.east_wind_array.append(tuple(east_wind_prof[ind_1][:][:][:]))
                     self.north_wind_array.append(tuple(north_wind_prof[ind_1][:][:][:]))
-                    self.wind_magn_array.append(tuple(np.sqrt(north_wind_prof[ind_1][:][:][:]**2+east_wind_prof[ind_1][:][:][:]**2)))
-                    self.wind_angle_array.append(tuple(np.degrees(np.arctan2(east_wind_prof[ind_1][:][:][:],north_wind_prof[ind_1][:][:][:]))))
+                    self.wind_magn_array.append(
+                        tuple(np.sqrt(north_wind_prof[ind_1][:][:][:] ** 2 + east_wind_prof[ind_1][:][:][:] ** 2)))
+                    self.wind_angle_array.append(
+                        tuple(np.degrees(np.arctan2(east_wind_prof[ind_1][:][:][:], north_wind_prof[ind_1][:][:][:]))))
             else:
                 continue
         for lev in self.level:
@@ -681,10 +672,11 @@ class App(QMainWindow):
         for i in range(len(self.dates)):
             for j in range(len(self.level)):
                 self.table.setItem(i, j, QTableWidgetItem(str(round(self.wind_magn_array[i][j][lat][lon], 2))))
-                if self.wind_angle_array[i][j][lat][lon]  > 0:
+                if self.wind_angle_array[i][j][lat][lon] > 0:
                     self.table2.setItem(i, j, QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon], 2))))
                 else:
-                    self.table2.setItem(i, j, QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon] % 360, 2))))
+                    self.table2.setItem(i, j,
+                                        QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon] % 360, 2))))
 
     @pyqtSlot()
     def lon_changed(self):
@@ -696,7 +688,8 @@ class App(QMainWindow):
                 if self.wind_angle_array[i][j][lat][lon] > 0:
                     self.table2.setItem(i, j, QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon], 2))))
                 else:
-                    self.table2.setItem(i, j, QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon] % 360, 2))))
+                    self.table2.setItem(i, j,
+                                        QTableWidgetItem(str(round(self.wind_angle_array[i][j][lat][lon] % 360, 2))))
 
     @pyqtSlot()
     def time_plot(self):
@@ -704,31 +697,17 @@ class App(QMainWindow):
             return None
         lev_one = float(self.boxLevel1.currentText())
         lev_two = float(self.boxLevel2.currentText())
-        lta = int(self.textLTA.text())
-        sta = int(self.textSTA.text())
         lat_one = float(self.boxLat1.currentText())
         lon_one = float(self.boxLon1.currentText())
 
-        self.wind_lev_one = []
-        self.wind_lev_two = []
-        self.angle_lev_one = []
-        self.angle_lev_two = []
-
-        for k in self.wind_magn_array:
-            self.wind_lev_one.append(
-                k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]   
-            )
-            self.wind_lev_two.append(
-                k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]
-            )
-        for j in self.wind_angle_array:
-            self.angle_lev_one.append(
-                j[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]   
-            )
-            self.angle_lev_two.append(
-                j[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)]
-            )
-
+        self.wind_lev_one = [k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.wind_magn_array]
+        self.wind_lev_two = [k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.wind_magn_array]
+        self.angle_lev_one = [k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.wind_angle_array]
+        self.angle_lev_two = [k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.wind_angle_array]
+        self.east_wind_lev_one = [k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.east_wind_array]
+        self.east_wind_lev_two = [k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.east_wind_array]
+        self.north_wind_lev_one = [k[self.level.index(lev_one)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.north_wind_array]
+        self.north_wind_lev_two = [k[self.level.index(lev_two)][self.latitude.index(lat_one)][self.longtitude.index(lon_one)] for k in self.north_wind_array]
 
         date_ticks = self.dates[0:-1:50]
         self.date_ticks = self.dates[0:-1:50]
@@ -747,19 +726,45 @@ class App(QMainWindow):
         date_min1 = self.boxDatesMinPlot1.currentIndex()
         date_max1 = self.boxDatesMaxPlot1.currentIndex()
 
-        self.chart = plotTemp(self, self.dates, self.wind_lev_one, self.wind_lev_two, date_ticks, date_labels,
-                            clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1)
-        self.tab4.layout.addWidget(self.chart, 2, 1, 1, 1)
-        self.toolbar = NavigationToolbar(self.chart, self)
-        self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab4.layout.addWidget(self.toolbar, 3, 1, 1, 1) 
-        self.chart = plotTemp(self, self.dates, self.angle_lev_one, self.angle_lev_two, date_ticks, date_labels,
-                            clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1)
-        self.tab4.layout.addWidget(self.chart, 2, 0, 1, 1)
-        self.toolbar = NavigationToolbar(self.chart, self)
-        self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab4.layout.addWidget(self.toolbar, 3, 0, 1, 1) 
-    
+        plt_xlabel = 'Дата'
+        plt_ylabel = u'Vₑ, м/c'
+        plt_title = 'Скорость (' + str(lon_one) + '$^\circ$N  ' + str(lat_one) + '$^\circ$E)'
+
+        self.chartPlot1 = plotTemp(self, self.dates, self.east_wind_lev_one, self.east_wind_lev_two, date_ticks, date_labels,
+                              clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1,
+                              plt_xlabel, plt_ylabel, plt_title)
+        self.tab4.layout.addWidget(self.chartPlot1, 0, 0, 1, 1)
+        # self.toolbarPlot1 = NavigationToolbar(self.chartPlot1, self)
+        # self.toolbarPlot1.setOrientation(Qt.Horizontal)
+        # self.tab4.layout.addWidget(self.toolbarPlot1, 1, 0, 1, 1)
+
+        plt_ylabel = u'Vₙ, м/c'
+        self.chartPlot2 = plotTemp(self, self.dates, self.north_wind_lev_one, self.north_wind_lev_two, date_ticks, date_labels,
+                              clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1,
+                              plt_xlabel, plt_ylabel, plt_title)
+        self.tab4.layout.addWidget(self.chartPlot2, 1, 0, 1, 1)
+        # self.toolbarPlot2 = NavigationToolbar(self.chartPlot2, self)
+        # self.toolbarPlot2.setOrientation(Qt.Horizontal)
+        # self.tab4.layout.addWidget(self.toolbarPlot2, 3, 0, 1, 1)
+
+        plt_ylabel = u'Vᵣ, м/c'
+        self.chartPlot3 = plotTemp(self, self.dates, self.wind_lev_one, self.wind_lev_two, date_ticks, date_labels,
+                              clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1,
+                              plt_xlabel, plt_ylabel, plt_title)
+        self.tab4.layout.addWidget(self.chartPlot3, 2, 0, 1, 1)
+        # self.toolbarPlot3 = NavigationToolbar(self.chartPlot3, self)
+        # self.toolbarPlot3.setOrientation(Qt.Horizontal)
+        # self.tab4.layout.addWidget(self.toolbarPlot3, 5, 1, 1, 1)
+
+        plt_ylabel = u'Угол ,\N{DEGREE SIGN}'
+        self.chartPlot4 = plotTemp(self, self.dates, self.angle_lev_one, self.angle_lev_two, date_ticks, date_labels,
+                              clr1, clr2, width1, width2, name1, name2, lat_one, lon_one, date_min1, date_max1,
+                              plt_xlabel, plt_ylabel, plt_title)
+        self.tab4.layout.addWidget(self.chartPlot4, 2, 1, 1, 1)
+        # self.toolbarPlot4 = NavigationToolbar(self.chartPlot4, self)
+        # self.toolbarPlot4.setOrientation(Qt.Horizontal)
+        # self.tab4.layout.addWidget(self.toolbarPlot4, 5, 0, 1, 1)
+
     @pyqtSlot()
     def date_map(self):
         lev_1 = float(self.boxLevel1.currentText())
@@ -779,7 +784,7 @@ class App(QMainWindow):
         wind_mag_lev2 = self.wind_magn_array[time_index][lev_index_2][:][:]
         east_wind_lev2 = self.east_wind_array[time_index][lev_index_2][:][:]
         north_wind_lev2 = self.north_wind_array[time_index][lev_index_2][:][:]
-        
+
         latMin = self.boxLatMin1.currentIndex()
         latMax = self.boxLatMax1.currentIndex()
         lonMin = self.boxLonMin1.currentIndex()
@@ -799,42 +804,43 @@ class App(QMainWindow):
         clon2 = self.longtitude.index(float(self.crcLon2.currentText()))
         lines_drawn = self.check_epic2.isChecked()
 
-        self.chart4 = Wind_Mag_Ang_Map(self,self.longtitude,self.latitude,east_wind_lev1,north_wind_lev1,wind_mag_lev1,date, colTop, 'Скорость м/c', clat, clon,
-                                self.colMap,
-                                colBot, crclCol,
-                                crclSize, latMin, latMax, lonMin, lonMax,
-                                clat2, clon2, crclCol2, crclSize2, lines_drawn)
-        self.tab1.layout.addWidget(self.chart4, 0, 0, 1, 1)
-        self.toolbar = NavigationToolbar(self.chart4, self)
-        self.toolbar.setOrientation(Qt.Horizontal)
-        self.tab1.layout.addWidget(self.toolbar, 1, 0, 1, 1)
+        self.chartMap1 = Wind_Mag_Ang_Map(self, self.longtitude, self.latitude, east_wind_lev1, north_wind_lev1,
+                                       wind_mag_lev1, date, colTop, 'Скорость м/c', clat, clon,
+                                       self.colMap,
+                                       colBot, crclCol,
+                                       crclSize, latMin, latMax, lonMin, lonMax,
+                                       clat2, clon2, crclCol2, crclSize2, lines_drawn)
+        self.tab1.layout.addWidget(self.chartMap1, 0, 0, 1, 1)
+        self.toolbarMap1 = NavigationToolbar(self.chartMap1, self)
+        self.toolbarMap1.setOrientation(Qt.Horizontal)
+        self.tab1.layout.addWidget(self.toolbarMap1, 1, 0, 1, 1)
 
-        self.chart5 = Wind_Mag_Ang_Map(self,self.longtitude,self.latitude,east_wind_lev2,north_wind_lev2,wind_mag_lev2,date, colTop2, 'Скорость м/c', clat, clon,
-                                self.colMap,
-                                colBot2, crclCol,
-                                crclSize, latMin, latMax, lonMin, lonMax,
-                                clat2, clon2, crclCol2, crclSize2, lines_drawn)
-        self.tab2.layout.addWidget(self.chart5, 2, 0, 1, 1)
-        self.toolbar1 = NavigationToolbar(self.chart5, self)
-        self.toolbar1.setOrientation(Qt.Horizontal)
-        self.tab2.layout.addWidget(self.toolbar1, 3, 0, 1, 1)
-    
+        self.chartMap2 = Wind_Mag_Ang_Map(self, self.longtitude, self.latitude, east_wind_lev2, north_wind_lev2,
+                                       wind_mag_lev2, date, colTop2, 'Скорость м/c', clat, clon,
+                                       self.colMap,
+                                       colBot2, crclCol,
+                                       crclSize, latMin, latMax, lonMin, lonMax,
+                                       clat2, clon2, crclCol2, crclSize2, lines_drawn)
+        self.tab2.layout.addWidget(self.chartMap2, 2, 0, 1, 1)
+        self.toolbarMap2 = NavigationToolbar(self.chartMap2, self)
+        self.toolbarMap2.setOrientation(Qt.Horizontal)
+        self.tab2.layout.addWidget(self.toolbarMap2, 3, 0, 1, 1)
+
     @pyqtSlot()
     def prev_map(self):
         ind = self.boxDates.currentIndex()
         try:
-            self.boxDates.setCurrentIndex(ind-1)
+            self.boxDates.setCurrentIndex(ind - 1)
         except:
             dlg = QDialog(self)
             dlg.setWindowTitle("Error")
             dlg.exec()
 
-        
     @pyqtSlot()
     def next_map(self):
         ind = self.boxDates.currentIndex()
         try:
-            self.boxDates.setCurrentIndex(ind+1)
+            self.boxDates.setCurrentIndex(ind + 1)
         except:
             dlg = QDialog(self)
             dlg.setWindowTitle("Error")
@@ -846,7 +852,7 @@ class App(QMainWindow):
         index_2 = self.boxDates3.currentIndex()
         lat = self.boxLat3.currentIndex()
         lon = self.boxLon3.currentIndex()
-        
+
         lev_1 = self.boxLevel1.currentIndex()
         lev_2 = self.boxLevel2.currentIndex()
 
@@ -859,18 +865,18 @@ class App(QMainWindow):
         self.wind_slice_lon1_lev1 = []
         self.angle_slice_lat1_lev1 = []
         self.angle_slice_lon1_lev1 = []
-    
+
         self.wind_slice_lat1_lev2 = []
         self.wind_slice_lon1_lev2 = []
         self.angle_slice_lat1_lev2 = []
         self.angle_slice_lon1_lev2 = []
 
-        for i,lat_i in enumerate(self.latitude):
+        for i, lat_i in enumerate(self.latitude):
             row_wind_lon1_lev1 = []
             row_angle_lon1_lev1 = []
             row_wind_lon1_lev2 = []
             row_angle_lon1_lev2 = []
-            for k in range(index_1,index_2+1,1):
+            for k in range(index_1, index_2 + 1, 1):
                 row_wind_lon1_lev1.append(self.wind_magn_array[k][lev_1][i][lon])
                 if self.wind_angle_array[k][lev_1][i][lon] > 0:
                     row_angle_lon1_lev1.append(self.wind_angle_array[k][lev_1][i][lon])
@@ -886,12 +892,12 @@ class App(QMainWindow):
             self.wind_slice_lon1_lev2.append(row_wind_lon1_lev2)
             self.angle_slice_lon1_lev2.append(row_angle_lon1_lev2)
 
-        for i,lon_i in enumerate(self.longtitude):
+        for i, lon_i in enumerate(self.longtitude):
             row_wind_lat1_lev1 = []
             row_angle_lat1_lev1 = []
             row_wind_lat1_lev2 = []
             row_angle_lat1_lev2 = []
-            for k in range(index_1,index_2+1,1):
+            for k in range(index_1, index_2 + 1, 1):
                 row_wind_lat1_lev1.append(self.wind_magn_array[k][lev_1][lat][i])
                 if self.wind_angle_array[k][lev_1][lat][i] > 0:
                     row_angle_lat1_lev1.append(self.wind_angle_array[k][lev_1][lat][i])
@@ -908,74 +914,78 @@ class App(QMainWindow):
             self.angle_slice_lat1_lev2.append(row_angle_lat1_lev2)
         name = 'Срез скорости по долготе(Высота 1)'
         name_clb = 'Скорость м/с'
-        self.chart2 = Slice_Matrix(self,self.wind_slice_lat1_lev1,self.dates[index_1:index_2+1],self.longtitude,colmap,name,lon_min,lon_max,name_clb)
-        self.toolbar7 = NavigationToolbar(self.chart2, self)
-        self.toolbar7.setOrientation(Qt.Horizontal)
-        self.tab5.layout.addWidget(self.chart2, 1, 0, 2, 11)
-        self.tab5.layout.addWidget(self.toolbar7,2, 0, 1, 8)
-
+        self.chartSlice1 = Slice_Matrix(self, self.wind_slice_lat1_lev1, self.dates[index_1:index_2 + 1], self.longtitude,
+                                   colmap, name, lon_min, lon_max, name_clb)
+        self.toolbarSlice1 = NavigationToolbar(self.chartSlice1, self)
+        self.toolbarSlice1.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chartSlice1, 1, 0, 2, 11)
+        self.tab5.layout.addWidget(self.toolbarSlice1, 2, 0, 1, 8)
 
         name = 'Срез скорости по долготе(Высота 2)'
         name_clb = 'Скорость м/с'
-        self.chart3 = Slice_Matrix(self,self.wind_slice_lat1_lev2,self.dates[index_1:index_2+1],self.longtitude,colmap,name,lon_min,lon_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab5.layout.addWidget(self.chart3, 4, 0, 2, 11)
-        self.tab5.layout.addWidget(self.toolbar8,5, 0, 1, 8)
+        self.chartSlice2 = Slice_Matrix(self, self.wind_slice_lat1_lev2, self.dates[index_1:index_2 + 1], self.longtitude,
+                                   colmap, name, lon_min, lon_max, name_clb)
+        self.toolbarSlice2 = NavigationToolbar(self.chartSlice2, self)
+        self.toolbarSlice2.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chartSlice2, 4, 0, 2, 11)
+        self.tab5.layout.addWidget(self.toolbarSlice2, 5, 0, 1, 8)
 
         name = 'Срез скорости по широте(Высота 1)'
         name_clb = 'Скорость м/с'
-        self.chart3 = Slice_Matrix(self,self.wind_slice_lon1_lev2,self.dates[index_1:index_2+1],self.latitude,colmap,name,lat_min,lat_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab5.layout.addWidget(self.chart3, 1, 12, 2, 11)
-        self.tab5.layout.addWidget(self.toolbar8,2, 12, 1, 8)
+        self.chartSlice3 = Slice_Matrix(self, self.wind_slice_lon1_lev2, self.dates[index_1:index_2 + 1], self.latitude,
+                                   colmap, name, lat_min, lat_max, name_clb)
+        self.toolbarSlice3 = NavigationToolbar(self.chartSlice3, self)
+        self.toolbarSlice3.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chartSlice3, 1, 12, 2, 11)
+        self.tab5.layout.addWidget(self.toolbarSlice3, 2, 12, 1, 8)
 
         name = 'Срез скорости по широте(Высота 2)'
         name_clb = 'Скорость м/с'
-        self.chart3 = Slice_Matrix(self,self.wind_slice_lon1_lev2,self.dates[index_1:index_2+1],self.latitude,colmap,name,lat_min,lat_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab5.layout.addWidget(self.chart3, 4, 12, 2, 11)
-        self.tab5.layout.addWidget(self.toolbar8,5, 12, 1, 8)
+        self.chartSlice4 = Slice_Matrix(self, self.wind_slice_lon1_lev2, self.dates[index_1:index_2 + 1], self.latitude,
+                                   colmap, name, lat_min, lat_max, name_clb)
+        self.toolbarSlice4 = NavigationToolbar(self.chartSlice4, self)
+        self.toolbarSlice4.setOrientation(Qt.Horizontal)
+        self.tab5.layout.addWidget(self.chartSlice4, 4, 12, 2, 11)
+        self.tab5.layout.addWidget(self.toolbarSlice4, 5, 12, 1, 8)
 
         name = 'Срез угла по долготе(Высота 1)'
         name_clb = 'Угол'
-        self.chart2 = Slice_Matrix(self,self.angle_slice_lat1_lev1,self.dates[index_1:index_2+1],self.longtitude,colmap,name,lon_min,lon_max,name_clb)
-        self.toolbar7 = NavigationToolbar(self.chart2, self)
-        self.toolbar7.setOrientation(Qt.Horizontal)
-        self.tab6.layout.addWidget(self.chart2, 1, 0, 2, 11)
-        self.tab6.layout.addWidget(self.toolbar7,2, 0, 1, 8)
-
+        self.chartSlice5 = Slice_Matrix(self, self.angle_slice_lat1_lev1, self.dates[index_1:index_2 + 1], self.longtitude,
+                                   colmap, name, lon_min, lon_max, name_clb)
+        self.toolbarSlice5 = NavigationToolbar(self.chartSlice5, self)
+        self.toolbarSlice5.setOrientation(Qt.Horizontal)
+        self.tab6.layout.addWidget(self.chartSlice5, 1, 0, 2, 11)
+        self.tab6.layout.addWidget(self.toolbarSlice5, 2, 0, 1, 8)
 
         name = 'Срез угла по долготе(Высота 2)'
         name_clb = 'Угол'
-        self.chart3 = Slice_Matrix(self,self.angle_slice_lat1_lev2,self.dates[index_1:index_2+1],self.longtitude,colmap,name,lon_min,lon_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab6.layout.addWidget(self.chart3, 4, 0, 2, 11)
-        self.tab6.layout.addWidget(self.toolbar8,5, 0, 1, 8)
+        self.chartSlice6 = Slice_Matrix(self, self.angle_slice_lat1_lev2, self.dates[index_1:index_2 + 1], self.longtitude,
+                                   colmap, name, lon_min, lon_max, name_clb)
+        self.toolbarSlice6 = NavigationToolbar(self.chartSlice6, self)
+        self.toolbarSlice6.setOrientation(Qt.Horizontal)
+        self.tab6.layout.addWidget(self.chartSlice6, 4, 0, 2, 11)
+        self.tab6.layout.addWidget(self.toolbarSlice6, 5, 0, 1, 8)
 
         name = 'Срез угла по широте(Высота 1)'
         name_clb = 'Угол'
-        self.chart3 = Slice_Matrix(self,self.angle_slice_lon1_lev2,self.dates[index_1:index_2+1],self.latitude,colmap,name,lat_min,lat_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab6.layout.addWidget(self.chart3, 1, 12, 2, 11)
-        self.tab6.layout.addWidget(self.toolbar8,2, 12, 1, 8)
+        self.chartSlice7 = Slice_Matrix(self, self.angle_slice_lon1_lev2, self.dates[index_1:index_2 + 1], self.latitude,
+                                   colmap, name, lat_min, lat_max, name_clb)
+        self.toolbarSlice7 = NavigationToolbar(self.chartSlice7, self)
+        self.toolbarSlice7.setOrientation(Qt.Horizontal)
+        self.tab6.layout.addWidget(self.chartSlice7, 1, 12, 2, 11)
+        self.tab6.layout.addWidget(self.toolbarSlice7, 2, 12, 1, 8)
 
         name = 'Срез угла по широте(Высота 2)'
         name_clb = 'Угол'
-        self.chart3 = Slice_Matrix(self,self.angle_slice_lon1_lev2,self.dates[index_1:index_2+1],self.latitude,colmap,name,lat_min,lat_max,name_clb)
-        self.toolbar8 = NavigationToolbar(self.chart3, self)
-        self.toolbar8.setOrientation(Qt.Horizontal)
-        self.tab6.layout.addWidget(self.chart3, 4, 12, 2, 11)
-        self.tab6.layout.addWidget(self.toolbar8,5, 12, 1, 8)
+        self.chartSlice8 = Slice_Matrix(self, self.angle_slice_lon1_lev2, self.dates[index_1:index_2 + 1], self.latitude,
+                                   colmap, name, lat_min, lat_max, name_clb)
+        self.toolbarSlice8 = NavigationToolbar(self.chartSlice8, self)
+        self.toolbarSlice8.setOrientation(Qt.Horizontal)
+        self.tab6.layout.addWidget(self.chartSlice8, 4, 12, 2, 11)
+        self.tab6.layout.addWidget(self.toolbarSlice8, 5, 12, 1, 8)
 
 
-                
 if __name__.endswith('__main__'):
     app = QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())
-    
