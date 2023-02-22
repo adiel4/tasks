@@ -57,9 +57,9 @@ class Wind_Mag_Ang_Map(FigureCanvas):
                         , fmt=(lambda x: (u"%d\N{DEGREE SIGN}") % (x)))
         m.drawmeridians(np.arange(long[0], long[-1], 10), labels=[0, 0, 0, 1], linewidth=0.1
                         , fmt=(lambda x: (u"%d\N{DEGREE SIGN}") % (x)))
-        highColor = round(coltop / 0.2)
-        lowColor = round(colBot / 0.2)
-        self.levels = [0.2 * x for x in range(lowColor, highColor + 1)]
+        # highColor = round(coltop / 0.2)
+        # lowColor = round(colBot / 0.2)
+        self.levels = [x for x in range(colBot, coltop, round((coltop-colBot)/10))]
         ac = m.contourf(x, y, magn, self.levels, cmap=colMap)
         am = m.quiver(x, y, wind_x, wind_y)
         self.ax.set_title(date)
@@ -785,6 +785,18 @@ class App(QMainWindow):
         east_wind_lev2 = self.east_wind_array[time_index][lev_index_2][:][:]
         north_wind_lev2 = self.north_wind_array[time_index][lev_index_2][:][:]
 
+        setMaxMap1 = round(np.ceil(max([max(i) for i in wind_mag_lev1])))
+        setMinMap1 = round(np.ceil(min([min(i) for i in wind_mag_lev1])))
+
+        setMaxMap2 = round(np.ceil(max([max(i) for i in wind_mag_lev2])))
+        setMinMap2 = round(np.ceil(min([min(i) for i in wind_mag_lev2])))
+
+        self.top1.setText(str(setMaxMap1))
+        self.bot1.setText(str(setMinMap1))
+
+        self.top2.setText(str(setMaxMap2))
+        self.bot2.setText(str(setMinMap2))
+
         latMin = self.boxLatMin1.currentIndex()
         latMax = self.boxLatMax1.currentIndex()
         lonMin = self.boxLonMin1.currentIndex()
@@ -792,10 +804,10 @@ class App(QMainWindow):
         crclCol = self.boxCrclColor.currentText()
         crclSize = self.textCrclSize.text().replace(',', '.')
         self.colMap = self.cmapBox.currentText()
-        colTop = float(self.top1.text().replace(',', '.'))
-        colBot = float(self.bot1.text().replace(',', '.'))
-        colTop2 = float(self.top2.text().replace(',', '.'))
-        colBot2 = float(self.bot2.text().replace(',', '.'))
+        colTop = int(self.top1.text().replace(',', '.'))
+        colBot = int(self.bot1.text().replace(',', '.'))
+        colTop2 = int(self.top2.text().replace(',', '.'))
+        colBot2 = int(self.bot2.text().replace(',', '.'))
         clat = self.latitude.index(float(self.crcLat.currentText()))
         clon = self.longtitude.index(float(self.crcLon.currentText()))
         crclCol2 = self.boxCrclColor2.currentText()

@@ -15,28 +15,5 @@
 #             print(nums[i],nums[k])
 #             break
 #         break
-
-import matplotlib.pyplot as plt
-
-a = [1,10,100,1000,10000,100000]
-b = [1,2,3,4,5,6]
-
-fig,ax = plt.subplots()
-ax.plot(a,b)
-
-ax.set_xlabel('adilet')
-
-ax2 = ax.twiny()
-
-# set the limits of the second x-axis to be the same as the first
-ax2.set_xlim(ax.get_xlim())
-
-# set the label of the second x-axis
-ax2.set_xlabel('Additional X-axis Label')
-
-# hide the tick marks and tick labels of the second x-axis
-ax2.xaxis.set_ticks_position('none')
-ax2.set_xticklabels()
-
-# show the plot
-plt.show()
+import numpy as np
+print(np.ceil(-1.9798))
